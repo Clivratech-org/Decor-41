@@ -9,6 +9,7 @@ const nav = [
   { href: "/admin/sales", label: "💰 Sales" },
   { href: "/admin/leads", label: "📥 Leads" },
   { href: "/admin/products", label: "📦 Products" },
+  { href: "/admin/coupons", label: "🏷️ Coupons" },
   { href: "/admin/shipping", label: "🚚 Shipping" },
 ];
 

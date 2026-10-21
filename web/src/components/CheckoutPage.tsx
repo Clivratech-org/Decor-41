@@ -28,37 +28,43 @@ export function CheckoutPageClient({
   razorpayKey: string;
 }) {
   const router = useRouter();
-  const { cart, subtotal, coupon, setCoupon, shipMethod, setShipMethod, clear, showToast } = useCart();
-  const [pm, setPm] = useState<"UPI" | "Card">("UPI");
+  const { cart, subtotal, coupon, couponPercent, setCoupon, shipMethod, setShipMethod, clear, showToast } = useCart();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<Record<string, boolean>>({});
 
-  const discount = coupon === "DECOR10" ? Math.round(subtotal * 0.1) : 0;
+  const discount = coupon ? Math.round((subtotal * couponPercent) / 100) : 0;
   const ship =
-    coupon === "FREESHIP"
-      ? 0
-      : shipMethod === "exp"
-        ? settings.shippingExpressFee
-        : subtotal >= settings.freeShippingThreshold
-          ? 0
-          : settings.shippingStandardFee;
+    shipMethod === "exp"
+      ? settings.shippingExpressFee
+      : subtotal >= settings.freeShippingThreshold
+        ? 0
+        : settings.shippingStandardFee;
   const total = subtotal - discount + ship;
 
   useEffect(() => {
     if (!cart.length) router.replace("/cart");
   }, [cart.length, router]);
 
-  function applyCoupon() {
+  async function applyCoupon() {
     const el = document.getElementById("cpn") as HTMLInputElement | null;
     const v = el?.value.trim().toUpperCase() || "";
     if (!v) {
       setCoupon(null);
       return;
     }
-    if (["DECOR10", "FREESHIP"].includes(v)) {
-      setCoupon(v);
-      showToast("Coupon applied ✓");
-    } else showToast("Invalid code — try DECOR10");
+    const res = await fetch("/api/coupons", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: v }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setCoupon(null);
+      showToast(data.error || "Invalid coupon");
+      return;
+    }
+    setCoupon(data.code, data.discountPercent);
+    showToast(`${data.discountPercent}% off applied`);
   }
 
   function val(id: string) {
@@ -95,7 +101,7 @@ export function CheckoutPageClient({
         state: val("st") || "Tamil Nadu",
         shippingMethod: shipMethod,
         couponCode: coupon,
-        paymentMethod: pm,
+        paymentMethod: "Razorpay",
         items: cart.map((c) => ({
           productId: c.productId,
           name: c.name,
@@ -269,9 +275,7 @@ export function CheckoutPageClient({
                   <small className="mut">{settings.shippingStandardDays}</small>
                 </div>
                 <span className="r">
-                  {subtotal >= settings.freeShippingThreshold || coupon === "FREESHIP"
-                    ? "Free"
-                    : rupees(settings.shippingStandardFee)}
+                  {subtotal >= settings.freeShippingThreshold ? "Free" : rupees(settings.shippingStandardFee)}
                 </span>
               </label>
               <label className={`opt ${shipMethod === "exp" ? "on" : ""}`} onClick={() => setShipMethod("exp")}>
@@ -289,15 +293,8 @@ export function CheckoutPageClient({
               <h3>
                 <i>4</i>Payment
               </h3>
-              <div className="pay">
-                {(["UPI", "Card"] as const).map((m) => (
-                  <button key={m} className={m === pm ? "on" : ""} onClick={() => setPm(m)} type="button">
-                    {m === "UPI" ? "📱 UPI" : "💳 Card"}
-                  </button>
-                ))}
-              </div>
               <p className="mut" style={{ fontSize: 13 }}>
-                You will complete {pm === "UPI" ? "UPI" : "card"} payment securely via Razorpay.
+                Razorpay will ask for UPI, card or another method.
               </p>
               <button className="btn full" style={{ marginTop: 14, padding: 16 }} onClick={place} disabled={busy} type="button">
                 {busy ? "Processing…" : `Pay ${rupees(total)} securely`}
@@ -324,7 +321,7 @@ export function CheckoutPageClient({
               </div>
             ))}
             <div className="cp">
-              <input id="cpn" placeholder="Coupon (try DECOR10)" defaultValue={coupon || ""} aria-label="Coupon code" />
+              <input id="cpn" placeholder="Coupon code" defaultValue={coupon || ""} aria-label="Coupon code" />
               <button className="btn g sm" onClick={applyCoupon} type="button">
                 Apply
               </button>

@@ -1,20 +1,11 @@
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { slugify } from "@/lib/slug";
 import { NextResponse } from "next/server";
 
 const PLACEHOLDER_FEATURES = JSON.stringify([["Quality build", "Crafted for everyday use."]]);
 const PLACEHOLDER_SPECS = JSON.stringify([["Material", "See product description"]]);
 const DEFAULT_SIZES = JSON.stringify(["Standard"]);
-
-function slugify(name: string) {
-  return (
-    name
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "") || "product"
-  );
-}
 
 function parseVariantNames(raw: string) {
   return raw
@@ -24,6 +15,37 @@ function parseVariantNames(raw: string) {
 }
 
 const COLORS = ["#c58b55", "#5b6277", "#f0b73a", "#3dd6ff", "#c6ff3d", "#ff5d6c"];
+
+function mapProduct(p: {
+  id: number;
+  slug: string;
+  name: string;
+  categoryId: string;
+  tagline: string;
+  description: string;
+  stock: number;
+  imageUrl: string | null;
+  visible: boolean;
+  artKey: number;
+  category: { name: string };
+  variants: { id: string; name: string; price: number }[];
+}) {
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    categoryId: p.categoryId,
+    categoryName: p.category.name,
+    tagline: p.tagline,
+    description: p.description,
+    price: p.variants[0]?.price ?? 0,
+    stock: p.stock,
+    variants: p.variants.map((v) => v.name).join(", "),
+    imageUrl: p.imageUrl,
+    visible: p.visible,
+    artKey: p.artKey,
+  };
+}
 
 export async function GET() {
   if (!(await getAdminSession())) {
@@ -38,20 +60,7 @@ export async function GET() {
   ]);
   return NextResponse.json({
     categories: categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug })),
-    products: products.map((p) => ({
-      id: p.id,
-      slug: p.slug,
-      name: p.name,
-      categoryId: p.categoryId,
-      categoryName: p.category.name,
-      price: p.variants[0]?.price ?? 0,
-      stock: p.stock,
-      variants: p.variants.map((v) => v.name).join(", "),
-      variantIds: p.variants.map((v) => v.id),
-      imageUrl: p.imageUrl,
-      visible: p.visible,
-      artKey: p.artKey,
-    })),
+    products: products.map(mapProduct),
   });
 }
 
@@ -62,6 +71,8 @@ export async function POST(req: Request) {
   const body = (await req.json()) as {
     name?: string;
     categoryId?: string;
+    tagline?: string;
+    description?: string;
     price?: number;
     stock?: number;
     variants?: string;
@@ -88,8 +99,8 @@ export async function POST(req: Request) {
       slug,
       name,
       categoryId,
-      tagline: name,
-      description: `${name} — available from Decor 41.`,
+      tagline: body.tagline?.trim() || name,
+      description: body.description?.trim() || `${name} — available from Decor 41.`,
       features: PLACEHOLDER_FEATURES,
       specs: PLACEHOLDER_SPECS,
       sizes: DEFAULT_SIZES,
@@ -119,6 +130,8 @@ export async function PUT(req: Request) {
     id?: number;
     name?: string;
     categoryId?: string;
+    tagline?: string;
+    description?: string;
     price?: number;
     stock?: number;
     variants?: string;
@@ -145,6 +158,8 @@ export async function PUT(req: Request) {
     data: {
       name,
       categoryId,
+      tagline: body.tagline !== undefined ? body.tagline.trim() || name : existing.tagline,
+      description: body.description !== undefined ? body.description.trim() || existing.description : existing.description,
       stock,
       visible: body.visible !== undefined ? !!body.visible : existing.visible,
       imageUrl: body.imageUrl !== undefined ? body.imageUrl.trim() || null : existing.imageUrl,

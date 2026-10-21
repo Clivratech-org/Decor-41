@@ -17,6 +17,7 @@ export async function GET() {
       interest: l.interest,
       notes: l.notes,
       fileUrl: l.fileUrl,
+      kind: l.kind,
       status: l.status,
       createdAt: l.createdAt.toISOString(),
       when: formatWhen(l.createdAt),

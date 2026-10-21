@@ -23,13 +23,17 @@ export function HomePage({
   categories,
   products,
   settings,
+  coupons,
 }: {
-  categories: { slug: string; name: string; description: string }[];
+  categories: { slug: string; name: string; description: string; imageUrl?: string | null }[];
   products: P[];
   settings: ShippingSettings;
+  coupons: { code: string; discountPercent: number }[];
 }) {
   const { showToast } = useCart();
   const [hi, setHi] = useState(0);
+  const [lead, setLead] = useState({ name: "", contact: "", interest: "", notes: "" });
+  const [sending, setSending] = useState(false);
   const byId = Object.fromEntries(products.map((p) => [p.id, p]));
   const autoCat = products.filter((p) => ["spoiler", "stand", "car"].includes(p.categorySlug));
 
@@ -190,13 +194,17 @@ export function HomePage({
             return (
               <Link key={c.slug} className="cat" href={`/c/${c.slug}`}>
                 <div className="art">
-                  {sample && (
-                    <ProductArt
-                      artKey={sample.artKey}
-                      color={color}
-                      view={c.slug.length % 3 === 0 ? 2 : 0}
-                      label={c.name}
-                    />
+                  {c.imageUrl ? (
+                    <img src={c.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    sample && (
+                      <ProductArt
+                        artKey={sample.artKey}
+                        color={color}
+                        view={c.slug.length % 3 === 0 ? 2 : 0}
+                        label={c.name}
+                      />
+                    )
                   )}
                 </div>
                 <span>
@@ -305,19 +313,64 @@ export function HomePage({
         </div>
 
         <div className="nl">
-          <h2 style={{ margin: "0 0 10px" }}>Get 10% off your first order</h2>
+          <h2 style={{ margin: "0 0 10px" }}>
+            {coupons[0] ? `Get ${coupons[0].discountPercent}% off with ${coupons[0].code}` : "Tell us what you need"}
+          </h2>
           <p style={{ margin: "0 0 18px" }}>
-            Use code <b>DECOR10</b> at checkout, or subscribe for new drops.
+            {coupons.length
+              ? `Use ${coupons.map((c) => c.code).join(", ")} at checkout, or send a request and we will reply.`
+              : "Send a request and the Decor 41 team will reply."}
           </p>
-          <input placeholder="Your email" aria-label="Email" />{" "}
-          <button
-            className="btn"
-            style={{ background: "#0b0f1a", color: "#fff" }}
-            type="button"
-            onClick={() => showToast("Subscribed ✓ Use code DECOR10")}
+          <form
+            className="lead-form"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setSending(true);
+              const res = await fetch("/api/leads", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(lead),
+              });
+              setSending(false);
+              if (!res.ok) {
+                showToast("Please fill name, contact and what you need");
+                return;
+              }
+              setLead({ name: "", contact: "", interest: "", notes: "" });
+              showToast("Request sent. We will contact you.");
+            }}
           >
-            Subscribe
-          </button>
+            <input
+              placeholder="Your name"
+              aria-label="Your name"
+              value={lead.name}
+              onChange={(e) => setLead({ ...lead, name: e.target.value })}
+              required
+            />
+            <input
+              placeholder="Phone or email"
+              aria-label="Phone or email"
+              value={lead.contact}
+              onChange={(e) => setLead({ ...lead, contact: e.target.value })}
+              required
+            />
+            <input
+              placeholder="What are you looking for?"
+              aria-label="What are you looking for?"
+              value={lead.interest}
+              onChange={(e) => setLead({ ...lead, interest: e.target.value })}
+              required
+            />
+            <input
+              placeholder="Notes (optional)"
+              aria-label="Notes"
+              value={lead.notes}
+              onChange={(e) => setLead({ ...lead, notes: e.target.value })}
+            />
+            <button className="btn" style={{ background: "#0b0f1a", color: "#fff" }} type="submit" disabled={sending}>
+              {sending ? "Sending…" : "Send request"}
+            </button>
+          </form>
         </div>
       </div>
       <Footer categories={categories} settings={settings} />

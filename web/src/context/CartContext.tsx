@@ -21,12 +21,13 @@ export type CartLine = {
 type CartContextValue = {
   cart: CartLine[];
   coupon: string | null;
+  couponPercent: number;
   shipMethod: "std" | "exp";
   addItem: (item: Omit<CartLine, "key" | "qty"> & { qty?: number }) => void;
   setQty: (key: string, qty: number) => void;
   remove: (key: string) => void;
   clear: () => void;
-  setCoupon: (code: string | null) => void;
+  setCoupon: (code: string | null, percent?: number) => void;
   setShipMethod: (m: "std" | "exp") => void;
   count: number;
   subtotal: number;
@@ -37,14 +38,14 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 const STORAGE = "d41cart";
 
-function load(): { cart: CartLine[]; coupon: string | null; shipMethod: "std" | "exp" } {
-  if (typeof window === "undefined") return { cart: [], coupon: null, shipMethod: "std" };
+function load(): { cart: CartLine[]; coupon: string | null; couponPercent: number; shipMethod: "std" | "exp" } {
+  if (typeof window === "undefined") return { cart: [], coupon: null, couponPercent: 0, shipMethod: "std" };
   try {
     const raw = localStorage.getItem(STORAGE);
-    if (!raw) return { cart: [], coupon: null, shipMethod: "std" };
+    if (!raw) return { cart: [], coupon: null, couponPercent: 0, shipMethod: "std" };
     return JSON.parse(raw);
   } catch {
-    return { cart: [], coupon: null, shipMethod: "std" };
+    return { cart: [], coupon: null, couponPercent: 0, shipMethod: "std" };
   }
 }
 
@@ -52,6 +53,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [coupon, setCouponState] = useState<string | null>(null);
+  const [couponPercent, setCouponPercent] = useState(0);
   const [shipMethod, setShipMethodState] = useState<"std" | "exp">("std");
   const [toast, setToast] = useState<string | null>(null);
 
@@ -59,14 +61,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const data = load();
     setCart(data.cart || []);
     setCouponState(data.coupon || null);
+    setCouponPercent(data.couponPercent || 0);
     setShipMethodState(data.shipMethod || "std");
     setHydrated(true);
   }, []);
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE, JSON.stringify({ cart, coupon, shipMethod }));
-  }, [cart, coupon, shipMethod, hydrated]);
+    localStorage.setItem(STORAGE, JSON.stringify({ cart, coupon, couponPercent, shipMethod }));
+  }, [cart, coupon, couponPercent, shipMethod, hydrated]);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -88,6 +91,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return {
       cart,
       coupon,
+      couponPercent,
       shipMethod,
       addItem,
       setQty: (key, qty) =>
@@ -96,16 +100,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       clear: () => {
         setCart([]);
         setCouponState(null);
+        setCouponPercent(0);
         setShipMethodState("std");
       },
-      setCoupon: setCouponState,
+      setCoupon: (code, percent = 0) => {
+        setCouponState(code);
+        setCouponPercent(code ? percent : 0);
+      },
       setShipMethod: setShipMethodState,
       count: cart.reduce((a, c) => a + c.qty, 0),
       subtotal: cart.reduce((a, c) => a + c.qty * c.price, 0),
       toast,
       showToast,
     };
-  }, [cart, coupon, shipMethod, toast]);
+  }, [cart, coupon, couponPercent, shipMethod, toast]);
 
   return (
     <CartContext.Provider value={value}>

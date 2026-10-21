@@ -1,7 +1,6 @@
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { uploadObject } from "@/lib/storage";
 
 export async function POST(req: Request) {
   try {
@@ -22,13 +21,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "File must be under 8 MB" }, { status: 400 });
     }
 
-    const dir = path.join(process.cwd(), "public", "uploads", "custom");
-    await mkdir(dir, { recursive: true });
-    const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const filename = `${Date.now()}-${safe}`;
-    const buf = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(dir, filename), buf);
-    const fileUrl = `/uploads/custom/${filename}`;
+    const saved = await uploadObject(file, "custom");
+    const fileUrl = saved.url;
 
     await prisma.lead.create({
       data: {
@@ -37,6 +31,7 @@ export async function POST(req: Request) {
         interest,
         notes: notes || null,
         fileUrl,
+        kind: "custom",
         status: "New",
       },
     });

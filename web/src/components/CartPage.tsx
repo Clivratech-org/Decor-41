@@ -18,32 +18,39 @@ export function CartPageClient({
   categories: { slug: string; name: string }[];
   settings: ShippingSettings;
 }) {
-  const { cart, count, subtotal, coupon, setCoupon, setQty, remove, showToast, shipMethod } = useCart();
-  const discount = coupon === "DECOR10" ? Math.round(subtotal * 0.1) : 0;
+  const { cart, count, subtotal, coupon, couponPercent, setCoupon, setQty, remove, showToast, shipMethod } = useCart();
+  const discount = coupon ? Math.round((subtotal * couponPercent) / 100) : 0;
   const ship =
     !cart.length
       ? 0
-      : coupon === "FREESHIP"
-        ? 0
-        : shipMethod === "exp"
-          ? settings.shippingExpressFee
-          : subtotal >= settings.freeShippingThreshold
-            ? 0
-            : settings.shippingStandardFee;
+      : shipMethod === "exp"
+        ? settings.shippingExpressFee
+        : subtotal >= settings.freeShippingThreshold
+          ? 0
+          : settings.shippingStandardFee;
   const total = subtotal - discount + ship;
   const left = Math.max(0, settings.freeShippingThreshold - subtotal);
 
-  function applyCoupon() {
+  async function applyCoupon() {
     const el = document.getElementById("cpn") as HTMLInputElement | null;
     const v = el?.value.trim().toUpperCase() || "";
     if (!v) {
       setCoupon(null);
       return;
     }
-    if (["DECOR10", "FREESHIP"].includes(v)) {
-      setCoupon(v);
-      showToast("Coupon applied ✓");
-    } else showToast("Invalid code — try DECOR10");
+    const res = await fetch("/api/coupons", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: v }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setCoupon(null);
+      showToast(data.error || "Invalid coupon");
+      return;
+    }
+    setCoupon(data.code, data.discountPercent);
+    showToast(`${data.discountPercent}% off applied`);
   }
 
   if (!cart.length) {
@@ -138,7 +145,7 @@ export function CartPageClient({
           </div>
           <div className="panel sticky">
             <h3 style={{ margin: "0 0 12px", fontSize: 20 }}>Order summary</h3>
-            {shipMethod === "std" && coupon !== "FREESHIP" && (
+            {shipMethod === "std" && (
               <>
                 <div style={{ fontSize: 13, margin: "10px 0 0" }} className="mut">
                   {left ? (
@@ -155,7 +162,7 @@ export function CartPageClient({
               </>
             )}
             <div className="cp">
-              <input id="cpn" placeholder="Coupon (try DECOR10)" defaultValue={coupon || ""} aria-label="Coupon code" />
+              <input id="cpn" placeholder="Coupon code" defaultValue={coupon || ""} aria-label="Coupon code" />
               <button className="btn g sm" onClick={applyCoupon} type="button">
                 Apply
               </button>

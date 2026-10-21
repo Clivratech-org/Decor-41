@@ -1,12 +1,13 @@
 import { HomePage } from "@/components/HomePage";
 import { getCategories, getProducts } from "@/lib/products";
-import { getSettings } from "@/lib/settings";
+import { getFeaturedCoupons, getSettings } from "@/lib/settings";
 
 export default async function Page() {
-  const [categories, products, settings] = await Promise.all([
+  const [categories, products, settings, coupons] = await Promise.all([
     getCategories(),
     getProducts(),
     getSettings(),
+    getFeaturedCoupons(),
   ]);
 
   return (
@@ -15,9 +16,11 @@ export default async function Page() {
         slug: c.slug,
         name: c.name,
         description: c.description,
+        imageUrl: c.imageUrl,
       }))}
       products={products}
       settings={settings}
+      coupons={coupons}
     />
   );
 }

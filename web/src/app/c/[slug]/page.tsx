@@ -29,10 +29,15 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           <Link href="/">Home</Link> / {c.name}
         </div>
         <div className="pgh">
-          <h1>{c.name}</h1>
-          <p className="mut">
-            {c.description} · {products.length} products
-          </p>
+          {c.imageUrl ? (
+            <img src={c.imageUrl} alt="" style={{ width: 88, height: 88, objectFit: "cover", borderRadius: 16 }} />
+          ) : null}
+          <div>
+            <h1>{c.name}</h1>
+            <p className="mut">
+              {c.description} · {products.length} products
+            </p>
+          </div>
         </div>
         <div className="g4">
           {products.map((p) => (

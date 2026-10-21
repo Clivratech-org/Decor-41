@@ -365,3 +365,172 @@
     margin-top: 0;
   }
 }
+
+.admin-app .page-head,
+.admin-app .actions,
+.admin-app .title-row,
+.admin-app .upload-row,
+.admin-app .split,
+.admin-app .tabs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-app .page-head {
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.admin-app .lead,
+.admin-app .hint,
+.admin-app .crumb {
+  color: var(--mut);
+  font-size: 14px;
+}
+
+.admin-app .crumb a,
+.admin-app .lead-card a {
+  color: var(--b);
+}
+
+.admin-app .cat-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.admin-app .pc p {
+  color: var(--mut);
+  margin: 6px 0 10px;
+}
+
+.admin-app .ph,
+.admin-app .preview {
+  height: 150px;
+  display: grid;
+  place-items: center;
+  background: #1b2236;
+  color: var(--mut);
+}
+
+.admin-app .preview.lg,
+.admin-app .avatar {
+  width: 100%;
+}
+
+.admin-app .avatar {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
+.admin-app .editor {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.admin-app .form-grid textarea {
+  resize: vertical;
+}
+
+.admin-app .split > div {
+  flex: 1;
+}
+
+.admin-app .check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  margin: 14px 0;
+}
+
+.admin-app .check input {
+  width: auto;
+}
+
+.admin-app .preview-card,
+.admin-app .coupon,
+.admin-app .lead-card {
+  background: var(--p);
+  border: 1px solid var(--ln);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.admin-app .preview-card {
+  margin-top: 16px;
+}
+
+.admin-app .preview-card b,
+.admin-app .preview-card span,
+.admin-app .preview-card strong {
+  display: block;
+  margin-top: 8px;
+}
+
+.admin-app .coupon-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.admin-app .coupon-top b {
+  font-size: 22px;
+  letter-spacing: 0.04em;
+}
+
+.admin-app .coupon-top span {
+  color: var(--a);
+  font-weight: 800;
+}
+
+.admin-app .tabs button {
+  background: var(--p);
+  color: var(--mut);
+  border: 1px solid var(--ln);
+  border-radius: 99px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.admin-app .tabs button.on {
+  background: var(--a);
+  color: #0b0f1a;
+  border-color: var(--a);
+}
+
+.admin-app .stack {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-app .lead-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-app .lead-card p {
+  margin: 4px 0;
+}
+
+.admin-app .empty {
+  color: var(--mut);
+}
+
+.admin-app .upload {
+  margin-top: 8px;
+}
+
+@media (max-width: 860px) {
+  .admin-app .editor,
+  .admin-app .lead-card {
+    display: block;
+  }
+}

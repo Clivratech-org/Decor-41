@@ -374,6 +374,12 @@ async function main() {
     ],
   });
 
+  await prisma.coupon.upsert({
+    where: { code: "DECOR10" },
+    create: { code: "DECOR10", discountPercent: 10, active: true, showOnSite: true },
+    update: {},
+  });
+
   console.log(`Seeded admin ${email} / ${password}`);
   console.log(`Seeded ${products.length} products`);
 }

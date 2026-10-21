@@ -21,6 +21,7 @@ model Category {
   name        String
   description String
   sortOrder   Int       @default(0)
+  imageUrl    String?
   products    Product[]
 }
 
@@ -102,8 +103,19 @@ model Lead {
   interest  String
   notes     String?
   fileUrl   String?
+  kind      String   @default("inquiry")
   status    String   @default("New")
   createdAt DateTime @default(now())
+}
+
+model Coupon {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  discountPercent Int
+  active          Boolean  @default(true)
+  showOnSite      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model SiteSetting {

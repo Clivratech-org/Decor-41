@@ -57,19 +57,24 @@ export async function setSettings( partial: Partial<Record<keyof ShippingSetting
   }
 }
 
-export function calcShipping(
-  subtotal: number,
-  method: "std" | "exp",
-  settings: ShippingSettings,
-  coupon?: string | null,
-) {
-  if (coupon === "FREESHIP") return 0;
+export function calcShipping(subtotal: number, method: "std" | "exp", settings: ShippingSettings) {
   if (method === "exp") return settings.shippingExpressFee;
   if (subtotal >= settings.freeShippingThreshold) return 0;
   return settings.shippingStandardFee;
 }
 
-export function calcDiscount(subtotal: number, coupon?: string | null) {
-  if (coupon === "DECOR10") return Math.round(subtotal * 0.1);
-  return 0;
+export async function calcDiscount(subtotal: number, coupon?: string | null) {
+  if (!coupon) return 0;
+  const row = await prisma.coupon.findUnique({ where: { code: coupon.trim().toUpperCase() } });
+  if (!row?.active) return 0;
+  const percent = Math.min(100, Math.max(0, row.discountPercent));
+  return Math.round((subtotal * percent) / 100);
+}
+
+export async function getFeaturedCoupons() {
+  return prisma.coupon.findMany({
+    where: { active: true, showOnSite: true },
+    orderBy: { discountPercent: "desc" },
+    select: { code: true, discountPercent: true },
+  });
 }

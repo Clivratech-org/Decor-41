@@ -14,7 +14,7 @@ const schema = z.object({
   state: z.string().min(2),
   shippingMethod: z.enum(["std", "exp"]),
   couponCode: z.string().nullable().optional(),
-  paymentMethod: z.enum(["UPI", "Card"]),
+  paymentMethod: z.literal("Razorpay"),
   items: z
     .array(
       z.object({
@@ -34,8 +34,8 @@ export async function POST(req: Request) {
     const body = schema.parse(await req.json());
     const settings = await getSettings();
     const subtotal = body.items.reduce((a, i) => a + i.unitPrice * i.quantity, 0);
-    const discount = calcDiscount(subtotal, body.couponCode);
-    const shippingFee = calcShipping(subtotal, body.shippingMethod, settings, body.couponCode);
+    const discount = await calcDiscount(subtotal, body.couponCode);
+    const shippingFee = calcShipping(subtotal, body.shippingMethod, settings);
     const total = subtotal - discount + shippingFee;
     const orderId = "D41-" + Date.now().toString().slice(-6);
 

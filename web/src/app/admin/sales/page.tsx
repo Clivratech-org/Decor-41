@@ -60,9 +60,6 @@ export default function AdminSalesPage() {
 
   const rev = revenue(orders);
   const avg = Math.round(rev / Math.max(orders.length, 1));
-  const upi = orders.filter((o) => o.paymentMethod === "UPI").length;
-  const card = orders.filter((o) => o.paymentMethod === "Card").length;
-  const cod = orders.filter((o) => o.paymentMethod === "COD").length;
 
   if (loading) return <h1>Sales</h1>;
 
@@ -79,10 +76,8 @@ export default function AdminSalesPage() {
           Avg order
         </div>
         <div className="k">
-          <b>
-            {upi}/{card}/{cod}
-          </b>
-          UPI / Card / COD
+          <b>{orders.filter((o) => o.paymentMethod === "Razorpay" || o.paymentMethod === "UPI" || o.paymentMethod === "Card").length}</b>
+          Razorpay orders
         </div>
       </div>
       <div className="tools">
