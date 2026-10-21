@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String   @default("Admin")
+  createdAt    DateTime @default(now())
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  description String
+  sortOrder   Int       @default(0)
+  products    Product[]
+}
+
+model Product {
+  id          Int               @id
+  slug        String            @unique
+  name        String
+  categoryId  String
+  category    Category          @relation(fields: [categoryId], references: [id])
+  tagline     String
+  description String
+  features    String
+  specs       String
+  sizes       String
+  rating      Float             @default(4.8)
+  reviewCount Int               @default(0)
+  stock       Int               @default(20)
+  visible     Boolean           @default(true)
+  artKey      Int               @default(1)
+  imageUrl    String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  variants    ProductVariant[]
+  orderItems  OrderItem[]
+}
+
+model ProductVariant {
+  id        String  @id @default(cuid())
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  price     Int
+  color     String
+  sortOrder Int     @default(0)
+}
+
+model Order {
+  id              String      @id
+  customerName    String
+  email           String
+  phone           String
+  address         String
+  city            String
+  pin             String
+  state           String
+  shippingMethod  String
+  shippingFee     Int
+  subtotal        Int
+  discount        Int         @default(0)
+  couponCode      String?
+  total           Int
+  paymentMethod   String
+  paymentStatus   String
+  status          String      @default("Paid")
+  razorpayOrderId String?
+  razorpayPayment String?
+  createdAt       DateTime    @default(now())
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   Int?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name        String
+  variant     String
+  size        String
+  unitPrice   Int
+  quantity    Int
+  lineTotal   Int
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  name      String
+  contact   String
+  interest  String
+  notes     String?
+  fileUrl   String?
+  status    String   @default("New")
+  createdAt DateTime @default(now())
+}
+
+model SiteSetting {
+  key   String @id
+  value String
+}

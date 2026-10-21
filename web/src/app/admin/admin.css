@@ -1,0 +1,367 @@
+:root {
+  --bg: #0b0f1a;
+  --p: #141a2b;
+  --ink: #eef2ff;
+  --mut: #8b94b3;
+  --a: #c6ff3d;
+  --b: #3dd6ff;
+  --ln: #262e4a;
+  --r: #ff5d6c;
+}
+
+.admin-app {
+  box-sizing: border-box;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, sans-serif;
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.admin-app *,
+.admin-app *::before,
+.admin-app *::after {
+  box-sizing: border-box;
+}
+
+.admin-app aside {
+  width: 210px;
+  background: var(--p);
+  border-right: 1px solid var(--ln);
+  padding: 20px 12px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-app .logo {
+  font-weight: 800;
+  font-size: 22px;
+  margin: 0 8px 24px;
+}
+
+.admin-app .logo b {
+  color: var(--a);
+}
+
+.admin-app aside a,
+.admin-app aside button.nav {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  color: var(--mut);
+  padding: 11px 12px;
+  border-radius: 10px;
+  font: inherit;
+  cursor: pointer;
+  margin-bottom: 4px;
+  text-decoration: none;
+}
+
+.admin-app aside a.on,
+.admin-app aside button.nav.on {
+  background: var(--a);
+  color: #0b0f1a;
+  font-weight: 700;
+}
+
+.admin-app main {
+  flex: 1;
+  padding: 26px;
+  min-width: 0;
+}
+
+.admin-app h1 {
+  margin: 0 0 18px;
+}
+
+.admin-app .kp {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.admin-app .k {
+  background: var(--p);
+  border: 1px solid var(--ln);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.admin-app .k b {
+  display: block;
+  font-size: 28px;
+  color: var(--a);
+}
+
+.admin-app .bx {
+  background: var(--p);
+  border: 1px solid var(--ln);
+  border-radius: 16px;
+  padding: 18px;
+  overflow-x: auto;
+  margin-bottom: 18px;
+}
+
+.admin-app table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 620px;
+}
+
+.admin-app th,
+.admin-app td {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid var(--ln);
+  font-size: 14px;
+}
+
+.admin-app th {
+  color: var(--mut);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.admin-app input,
+.admin-app select,
+.admin-app textarea {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--ln);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  width: 100%;
+}
+
+.admin-app .btn {
+  background: var(--a);
+  color: #0b0f1a;
+  border: 0;
+  padding: 10px 18px;
+  border-radius: 99px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.admin-app .btn.g {
+  background: none;
+  color: var(--ink);
+  border: 1px solid var(--ln);
+}
+
+.admin-app .btn.d {
+  background: none;
+  color: var(--r);
+  border: 1px solid var(--r);
+}
+
+.admin-app .tools {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-app .tools input {
+  max-width: 260px;
+}
+
+.admin-app .tools select {
+  width: auto;
+}
+
+.admin-app .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.admin-app .pc {
+  background: var(--p);
+  border: 1px solid var(--ln);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.admin-app .pc img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  background: #222;
+}
+
+.admin-app .pc div {
+  padding: 12px;
+}
+
+.admin-app .pill {
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #2e3552;
+}
+
+.admin-app .Paid,
+.admin-app .Delivered,
+.admin-app .Won {
+  background: #1f6b3a;
+}
+
+.admin-app .Pending,
+.admin-app .Contacted {
+  background: #7a5c10;
+}
+
+.admin-app .Shipped,
+.admin-app .New {
+  background: #1f4f8a;
+}
+
+.admin-app .Refunded,
+.admin-app .Lost {
+  background: #7a2230;
+}
+
+.admin-app .bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 150px;
+}
+
+.admin-app .bars div {
+  flex: 1;
+  background: linear-gradient(var(--a), var(--b));
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  min-height: 4px;
+}
+
+.admin-app .bars span {
+  position: absolute;
+  bottom: -20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  color: var(--mut);
+}
+
+.admin-app .md {
+  position: fixed;
+  inset: 0;
+  background: #000b;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9;
+  padding: 16px;
+}
+
+.admin-app .md.on {
+  display: flex;
+}
+
+.admin-app .md > div {
+  background: var(--p);
+  border: 1px solid var(--ln);
+  border-radius: 20px;
+  padding: 24px;
+  width: min(480px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+}
+
+.admin-app label {
+  font-size: 12px;
+  color: var(--mut);
+  display: block;
+  margin: 10px 0 4px;
+}
+
+.admin-app .st {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-app .login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, sans-serif;
+}
+
+.admin-app .login-box {
+  background: var(--p);
+  border: 1px solid var(--ln);
+  border-radius: 20px;
+  padding: 32px;
+  width: min(400px, 100%);
+}
+
+.admin-app .login-box h1 {
+  margin: 0 0 8px;
+}
+
+.admin-app .login-box p {
+  color: var(--mut);
+  margin: 0 0 20px;
+  font-size: 14px;
+}
+
+.admin-app .err {
+  color: var(--r);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.admin-app .nav-foot {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+@media (max-width: 760px) {
+  .admin-app {
+    flex-direction: column;
+  }
+
+  .admin-app aside {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .admin-app .logo {
+    margin: 0 10px;
+    white-space: nowrap;
+  }
+
+  .admin-app aside a,
+  .admin-app aside button.nav {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .admin-app .nav-foot {
+    margin-top: 0;
+  }
+}

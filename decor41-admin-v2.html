@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Decor 41 — Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--bg:#0b0f1a;--p:#141a2b;--ink:#eef2ff;--mut:#8b94b3;--a:#c6ff3d;--b:#3dd6ff;--ln:#262e4a;--r:#ff5d6c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif;display:flex;min-height:100vh}
+aside{width:210px;background:var(--p);border-right:1px solid var(--ln);padding:20px 12px;flex:none}
+.logo{font-weight:800;font-size:22px;margin:0 8px 24px}.logo b{color:var(--a)}
+aside button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--mut);padding:11px 12px;border-radius:10px;font:inherit;cursor:pointer;margin-bottom:4px}
+aside button.on{background:var(--a);color:#0b0f1a;font-weight:700}
+main{flex:1;padding:26px;min-width:0}h1{margin:0 0 18px}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px}
+.k{background:var(--p);border:1px solid var(--ln);border-radius:16px;padding:18px}.k b{display:block;font-size:28px;color:var(--a)}
+.bx{background:var(--p);border:1px solid var(--ln);border-radius:16px;padding:18px;overflow-x:auto;margin-bottom:18px}
+table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--ln);font-size:14px}th{color:var(--mut);font-size:12px;text-transform:uppercase}
+input,select,textarea{padding:10px 12px;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--ink);font:inherit;width:100%}
+.btn{background:var(--a);color:#0b0f1a;border:0;padding:10px 18px;border-radius:99px;font-weight:700;cursor:pointer;font-size:14px}.btn.g{background:none;color:var(--ink);border:1px solid var(--ln)}.btn.d{background:none;color:var(--r);border:1px solid var(--r)}
+.tools{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}.tools input{max-width:260px}.tools select{width:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.pc{background:var(--p);border:1px solid var(--ln);border-radius:16px;overflow:hidden}.pc img{width:100%;height:150px;object-fit:cover;background:#222}.pc div{padding:12px}
+.pill{padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:#2e3552}.Paid,.Delivered,.Won{background:#1f6b3a}.Pending,.Contacted{background:#7a5c10}.Shipped,.New{background:#1f4f8a}.Refunded,.Lost{background:#7a2230}
+.bars{display:flex;align-items:flex-end;gap:10px;height:150px}.bars div{flex:1;background:linear-gradient(var(--a),var(--b));border-radius:8px 8px 0 0;position:relative}.bars span{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:11px;color:var(--mut)}
+.md{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:9;padding:16px}.md.on{display:flex}
+.md>div{background:var(--p);border:1px solid var(--ln);border-radius:20px;padding:24px;width:min(480px,100%);max-height:92vh;overflow:auto}
+label{font-size:12px;color:var(--mut);display:block;margin:10px 0 4px}.st{display:flex;align-items:center;gap:8px}
+@media(max-width:760px){body{flex-direction:column}aside{width:100%;display:flex;overflow-x:auto;gap:4px}.logo{margin:0 10px}aside button{width:auto;white-space:nowrap}}
+</style></head><body>
+<aside><div class="logo">Decor<b>41</b> Admin</div><button class="on" data-v="dash">📊 Dashboard</button><button data-v="sales">💰 Sales</button><button data-v="leads">📥 Leads</button><button data-v="prods">📦 Products</button></aside>
+<main id="m"></main>
+<div class="md" id="md"><div id="mc"></div></div>
+<script>
+const I=(k,s)=>`https://loremflickr.com/400/300/${k}?lock=${s}`;
+const CATS=['Laser Cut','Posters','Spoilers','Table Plants','Wallpaper','Car Stands','Cars'];
+let sample=[
+{id:'D41-100231',name:'Priya N.',contact:'priya@mail.com',items:'Diecast Sports Car ×1',total:2499,pay:'UPI',status:'Delivered',date:'2026-09-24'},
+{id:'D41-100232',name:'Karthik R.',contact:'98400 22133',items:'GT Rear Spoiler ×1',total:3499,pay:'Card',status:'Shipped',date:'2026-09-27'},
+{id:'D41-100233',name:'Divya M.',contact:'divya@mail.com',items:'Mandala Wall Art ×2',total:2598,pay:'UPI',status:'Paid',date:'2026-09-29'},
+{id:'D41-100234',name:'Sanjay T.',contact:'99620 77810',items:'Wallpaper Roll ×3',total:3597,pay:'COD',status:'Pending',date:'2026-09-30'}];
+let orders=sample;try{orders=[...JSON.parse(localStorage.getItem('d41orders')||'[]'),...sample]}catch(e){}
+let leads=[{n:'Arjun K.',c:'98400 11122',i:'GT Rear Spoiler',s:'New',d:'Today'},{n:'Meera S.',c:'meera@mail.com',i:'Mandala Wall Art 24in',s:'Contacted',d:'Yesterday'},{n:'Rahul V.',c:'97900 55541',i:'Geometric Wallpaper',s:'New',d:'Yesterday'},{n:'Lakshmi P.',c:'lakshmi@mail.com',i:'Custom name plate',s:'Won',d:'3 days ago'}];
+let prods=[
+{n:'Mandala Wall Art',c:'Laser Cut',p:1299,st:24,v:'Natural wood, Black acrylic, Gold acrylic',on:1,k:'mandala,wood'},
+{n:'Mountain Sunrise Poster',c:'Posters',p:399,st:80,v:'Matte, Glossy',on:1,k:'mountain,poster'},
+{n:'GT Rear Spoiler',c:'Spoilers',p:3499,st:9,v:'Gloss black, Carbon look, Red',on:1,k:'car,spoiler'},
+{n:'Succulent Desk Plant',c:'Table Plants',p:549,st:41,v:'White pot, Terracotta, Black pot',on:1,k:'succulent,plant'},
+{n:'Geometric Wallpaper Roll',c:'Wallpaper',p:1199,st:3,v:'Teal, Gold, Grey',on:1,k:'geometric,wallpaper'},
+{n:'Showcase Car Stand',c:'Car Stands',p:1499,st:15,v:'Black, Silver',on:0,k:'model car,shelf'},
+{n:'Diecast Sports Car',c:'Cars',p:2499,st:12,v:'Red, Yellow, Blue',on:1,k:'sports car'}];
+let view='dash',q='',fc='All',sf='All';const $=s=>document.querySelector(s),m=$('#m');
+document.querySelectorAll('aside button').forEach(b=>b.onclick=()=>{document.querySelectorAll('aside button').forEach(x=>x.classList.remove('on'));b.classList.add('on');view=b.dataset.v;draw()});
+const rev=()=>orders.filter(o=>o.status!='Refunded'&&o.status!='Pending').reduce((a,o)=>a+o.total,0);
+const sel=(arr,v,fn)=>`<select onchange="${fn}(this.value)">${arr.map(s=>`<option ${s==v?'selected':''}>${s}</option>`).join('')}</select>`;
+function draw(){
+if(view=='dash'){const days={};orders.forEach(o=>days[o.date]=(days[o.date]||0)+o.total);const k=Object.keys(days).sort().slice(-7),mx=Math.max(...k.map(x=>days[x]),1);
+m.innerHTML=`<h1>Dashboard</h1><div class="kp"><div class="k"><b>₹${rev().toLocaleString('en-IN')}</b>Revenue</div><div class="k"><b>${orders.length}</b>Orders</div><div class="k"><b>${orders.filter(o=>o.status=='Pending').length}</b>Pending</div><div class="k"><b>${leads.filter(l=>l.s=='New').length}</b>New leads</div><div class="k"><b>${prods.filter(p=>p.st<10).length}</b>Low stock</div></div><div class="bx"><h3>Sales by day</h3><div class="bars" style="margin-bottom:24px">${k.map(x=>`<div style="height:${days[x]/mx*100}%"><span>${x.slice(5)}</span></div>`).join('')}</div></div>`}
+if(view=='sales')m.innerHTML=`<h1>Sales</h1><div class="kp"><div class="k"><b>₹${rev().toLocaleString('en-IN')}</b>Collected</div><div class="k"><b>₹${Math.round(rev()/Math.max(orders.length,1))}</b>Avg order</div><div class="k"><b>${orders.filter(o=>o.pay=='UPI').length}/${orders.filter(o=>o.pay=='Card').length}/${orders.filter(o=>o.pay=='COD').length}</b>UPI / Card / COD</div></div><div class="tools">${sel(['All','Paid','Pending','Shipped','Delivered','Refunded'],sf,'setSf')}<button class="btn g" onclick="csv()">Export CSV</button></div><div class="bx"><table><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Date</th><th>Status</th></tr>${orders.map((o,i)=>sf=='All'||o.status==sf?`<tr><td>${o.id}</td><td>${o.name}<br><small style="color:var(--mut)">${o.contact||''}</small></td><td>${o.items}</td><td>₹${o.total}</td><td>${o.pay}</td><td>${o.date}</td><td>${sel(['Paid','Pending','Shipped','Delivered','Refunded'],o.status,`(v=>{orders[${i}].status=v;draw()})`)}</td></tr>`:'').join('')}</table></div>`;
+if(view=='leads')m.innerHTML=`<h1>Leads</h1><div class="bx"><table><tr><th>Name</th><th>Contact</th><th>Interested in</th><th>When</th><th>Status</th></tr>${leads.map((l,i)=>`<tr><td>${l.n}</td><td>${l.c}</td><td>${l.i}</td><td>${l.d}</td><td>${sel(['New','Contacted','Won','Lost'],l.s,`(v=>{leads[${i}].s=v;draw()})`)}</td></tr>`).join('')}</table></div>`;
+if(view=='prods')m.innerHTML=`<h1>Products</h1><div class="tools"><input placeholder="🔍 Search products" value="${q}" oninput="q=this.value;draw();document.querySelector('.tools input').focus()">${sel(['All',...CATS],fc,'setFc')}<button class="btn" onclick="edit(-1)">+ Add product</button></div><div class="grid">${prods.map((p,i)=>(fc=='All'||p.c==fc)&&p.n.toLowerCase().includes(q.toLowerCase())?`<div class="pc"><img src="${p.img||I(p.k,i+5)}" alt=""><div><span class="pill ${p.on?'Paid':'Lost'}">${p.on?'Live':'Hidden'}</span> ${p.st<10?'<span class="pill Refunded">Low stock</span>':''}<h3 style="margin:8px 0 2px">${p.n}</h3><small style="color:var(--mut)">${p.c} · ${p.v.split(',').length} variants</small><p style="color:var(--a);font-weight:800;margin:6px 0">₹${p.p}</p><div class="st"><button class="btn g" onclick="prods[${i}].st=Math.max(0,prods[${i}].st-1);draw()">−</button><b>${p.st}</b><button class="btn g" onclick="prods[${i}].st++;draw()">+</button><span style="flex:1"></span><button class="btn g" onclick="edit(${i})">Edit</button></div></div></div>`:'').join('')}</div>`}
+function setSf(v){sf=v;draw()}function setFc(v){fc=v;draw()}
+function edit(i){const p=i<0?{n:'',c:CATS[0],p:'',st:0,v:'',on:1,k:'',img:''}:prods[i];
+$('#mc').innerHTML=`<h2 style="margin-top:0">${i<0?'Add product':'Edit product'}</h2><label>Name</label><input id="en" value="${p.n}"><label>Category</label><select id="ec">${CATS.map(c=>`<option ${c==p.c?'selected':''}>${c}</option>`).join('')}</select><label>Price (₹)</label><input id="ep" type="number" value="${p.p}"><label>Stock</label><input id="es" type="number" value="${p.st}"><label>Variants (comma separated)</label><input id="ev" value="${p.v}" placeholder="Red, Blue, Black"><label>Image URL</label><input id="ei" value="${p.img||''}" placeholder="https://… (leave blank for auto image)"><label class="st"><input id="eo" type="checkbox" style="width:auto" ${p.on?'checked':''}> Visible on store</label><div class="st" style="margin-top:18px"><button class="btn" onclick="save(${i})">Save</button><button class="btn g" onclick="$('#md').classList.remove('on')">Cancel</button>${i>=0?`<span style="flex:1"></span><button class="btn d" onclick="prods.splice(${i},1);$('#md').classList.remove('on');draw()">Delete</button>`:''}</div>`;$('#md').classList.add('on')}
+function save(i){const o={n:en.value||'Untitled',c:ec.value,p:+ep.value||0,st:+es.value||0,v:ev.value||'Standard',img:ei.value,on:eo.checked?1:0,k:i<0?(en.value.split(' ').slice(0,2).join(',')):prods[i].k};i<0?prods.unshift(o):prods[i]=o;$('#md').classList.remove('on');draw()}
+function csv(){const r=['id,name,items,total,payment,status,date',...orders.map(o=>[o.id,o.name,'"'+o.items+'"',o.total,o.pay,o.status,o.date].join(','))].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r]));a.download='decor41-sales.csv';a.click()}
+draw();
+</script></body></html>
