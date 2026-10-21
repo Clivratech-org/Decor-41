@@ -5,7 +5,7 @@ Next.js storefront + admin panel matching the approved HTML prototype and servic
 ## Stack
 
 - **Next.js 16** (App Router) + TypeScript
-- **Prisma** + **SQLite** (swap `DATABASE_URL` to PostgreSQL for production)
+- **Prisma** + **PostgreSQL** (Neon in production)
 - **Razorpay** (UPI / Cards — no COD)
 - Deploy target: **Vercel** (or any Node host)
 
