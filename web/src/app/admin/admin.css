@@ -337,6 +337,68 @@
   padding-top: 16px;
 }
 
+.admin-app .chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+}
+
+.admin-app .bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-app .bar-col .amt {
+  font-size: 11px;
+  color: var(--a);
+  font-weight: 700;
+  min-height: 16px;
+}
+
+.admin-app .track {
+  width: min(100%, 36px);
+  height: 140px;
+  border-radius: 12px;
+  background: #1b2236;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.admin-app .fill {
+  width: 100%;
+  background: linear-gradient(#c6ff3d, #3dd6ff);
+  border-radius: 12px 12px 4px 4px;
+}
+
+.admin-app .bar-col .lbl {
+  font-size: 11px;
+  color: var(--mut);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.admin-app .bar-col .lbl small {
+  display: block;
+  color: var(--ink);
+}
+
+.admin-app .status-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+}
+
+.admin-app .status-row b {
+  display: block;
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+
 @media (max-width: 760px) {
   .admin-app {
     flex-direction: column;
@@ -345,9 +407,46 @@
   .admin-app aside {
     width: 100%;
     flex-direction: row;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    overflow: visible;
     gap: 4px;
     align-items: center;
+  }
+
+  .admin-app main {
+    padding: 16px;
+  }
+
+  .admin-app h1 {
+    font-size: 28px;
+  }
+
+  .admin-app .kp {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-app .k b {
+    font-size: 22px;
+  }
+
+  .admin-app .editor,
+  .admin-app .lead-card,
+  .admin-app .upload-row,
+  .admin-app .page-head {
+    display: block;
+  }
+
+  .admin-app .page-head .btn,
+  .admin-app .actions .btn {
+    margin-top: 10px;
+  }
+
+  .admin-app .chart {
+    gap: 4px;
+  }
+
+  .admin-app .track {
+    height: 110px;
   }
 
   .admin-app .logo {
@@ -530,7 +629,34 @@
 
 @media (max-width: 860px) {
   .admin-app .editor,
-  .admin-app .lead-card {
+  .admin-app .lead-card,
+  .admin-app .upload-row,
+  .admin-app .page-head,
+  .admin-app .title-row {
     display: block;
+  }
+
+  .admin-app .page-head .btn,
+  .admin-app .actions .btn {
+    margin-top: 10px;
+  }
+
+  .admin-app .actions {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .admin-app main {
+    padding: 16px;
+  }
+
+  .admin-app .kp {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-app .tools input,
+  .admin-app .tools select {
+    max-width: 100%;
+    flex: 1 1 140px;
   }
 }

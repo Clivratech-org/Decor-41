@@ -100,10 +100,10 @@ export function HomePage({
               Laser-cut art, posters, wallpapers, faux greens and car accessories — made to stand out on your wall,
               desk and driveway.
             </p>
-            <div>
+            <div className="hero-cta">
               <Link className="btn" href="/c/laser">
                 Shop now
-              </Link>{" "}
+              </Link>
               <Link className="btn g" href="/c/spoiler">
                 Auto zone
               </Link>

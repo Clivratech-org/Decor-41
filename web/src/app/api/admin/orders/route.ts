@@ -22,7 +22,7 @@ export async function GET() {
       total: o.total,
       paymentMethod: o.paymentMethod,
       status: o.status,
-      date: o.createdAt.toISOString().slice(0, 10),
+      date: new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(o.createdAt),
       createdAt: o.createdAt.toISOString(),
     })),
   );

@@ -22,6 +22,7 @@ export function SiteChrome({
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [menu, setMenu] = useState(false);
   const isCheckout = pathname.startsWith("/checkout") || pathname.startsWith("/done");
   const isAdmin = pathname.startsWith("/admin");
 
@@ -34,6 +35,10 @@ export function SiteChrome({
       document.documentElement.dataset.theme = "dark";
     }
   }, []);
+
+  useEffect(() => {
+    setMenu(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (isAdmin) return;
@@ -112,13 +117,24 @@ export function SiteChrome({
               Decor<b>41</b>
             </span>
           </Link>
+          <button
+            className="tg menu"
+            aria-label={menu ? "Close menu" : "Open menu"}
+            aria-expanded={menu}
+            onClick={() => setMenu((open) => !open)}
+            type="button"
+          >
+            {menu ? "✕" : "☰"}
+          </button>
           {!isCheckout && (
-            <nav id="nav">
+            <nav id="nav" className={menu ? "open" : ""}>
               {categories.map((c) => (
                 <Link key={c.slug} href={`/c/${c.slug}`}>
                   {c.name}
                 </Link>
               ))}
+              <Link href="/custom">Custom order</Link>
+              <Link href="/cart">Cart</Link>
             </nav>
           )}
           {isCheckout && <div className="sf">🔒 Secure checkout</div>}
@@ -138,7 +154,9 @@ export function SiteChrome({
             </svg>
           </button>
           <Link className="btn" id="cb" href="/cart">
-            🛒 Cart <span id="cc">{count}</span>
+            <span aria-hidden>🛒</span>
+            <span className="cart-lbl">Cart</span>
+            <span id="cc">{count}</span>
           </Link>
         </div>
       </header>
