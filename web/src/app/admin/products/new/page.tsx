@@ -25,9 +25,8 @@ function NewProduct() {
         categoryId,
         tagline: "",
         description: "",
-        price: 0,
         stock: 1,
-        variants: "Standard",
+        variants: [{ name: "Standard", price: 0 }],
         imageUrl: "",
         visible: true,
       }}

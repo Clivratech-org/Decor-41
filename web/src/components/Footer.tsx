@@ -5,9 +5,10 @@ export function Footer({
   categories,
   settings,
 }: {
-  categories: { slug: string; name: string }[];
+  categories: { slug: string; name: string; parentId?: string | null }[];
   settings: ShippingSettings;
 }) {
+  const top = categories.filter((c) => !c.parentId);
   return (
     <footer>
       <div className="w">
@@ -23,7 +24,7 @@ export function Footer({
           </div>
           <div>
             <h4>Shop</h4>
-            {categories.slice(0, 4).map((c) => (
+            {top.slice(0, 4).map((c) => (
               <Link key={c.slug} href={`/c/${c.slug}`}>
                 {c.name}
               </Link>
@@ -31,7 +32,7 @@ export function Footer({
           </div>
           <div>
             <h4>More</h4>
-            {categories.slice(4).map((c) => (
+            {top.slice(4).map((c) => (
               <Link key={c.slug} href={`/c/${c.slug}`}>
                 {c.name}
               </Link>

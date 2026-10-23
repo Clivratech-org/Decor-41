@@ -11,9 +11,8 @@ type Product = {
   categoryName: string;
   tagline: string;
   description: string;
-  price: number;
   stock: number;
-  variants: string;
+  variants: { id: string; name: string; price: number }[];
   imageUrl: string | null;
   visible: boolean;
 };
@@ -42,9 +41,8 @@ export default function EditProductPage() {
         categoryId: product.categoryId,
         tagline: product.tagline || "",
         description: product.description || "",
-        price: product.price,
         stock: product.stock,
-        variants: product.variants || "Standard",
+        variants: product.variants?.length ? product.variants : [{ name: "Standard", price: 0 }],
         imageUrl: product.imageUrl || "",
         visible: product.visible,
       }}

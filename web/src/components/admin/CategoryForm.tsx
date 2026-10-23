@@ -11,9 +11,16 @@ export type CategoryDraft = {
   description: string;
   sortOrder: number;
   imageUrl: string;
+  parentId: string;
 };
 
-export function CategoryForm({ initial }: { initial: CategoryDraft }) {
+export function CategoryForm({
+  initial,
+  parents,
+}: {
+  initial: CategoryDraft;
+  parents: { id: string; name: string }[];
+}) {
   const router = useRouter();
   const [form, setForm] = useState(initial);
   const [busy, setBusy] = useState(false);
@@ -71,6 +78,18 @@ export function CategoryForm({ initial }: { initial: CategoryDraft }) {
         <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         <label>Description</label>
         <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        <label>Inside category</label>
+        <select value={form.parentId} onChange={(e) => setForm({ ...form, parentId: e.target.value })}>
+          <option value="">None — this is a main category</option>
+          {parents
+            .filter((parent) => parent.id !== form.id)
+            .map((parent) => (
+              <option key={parent.id} value={parent.id}>
+                {parent.name}
+              </option>
+            ))}
+        </select>
+        <p className="hint">Choose a main category to make this a subcategory. Leave it empty for a top-level category.</p>
         <label>Sort order</label>
         <input
           type="number"

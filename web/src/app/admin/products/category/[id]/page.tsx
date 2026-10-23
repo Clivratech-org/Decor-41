@@ -16,18 +16,31 @@ type Product = {
   visible: boolean;
 };
 
-type Category = { id: string; name: string; description: string; imageUrl: string | null };
+type Category = {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string | null;
+  parentId: string | null;
+  productCount: number;
+};
 
 export default function CategoryProductsPage() {
   const { id } = useParams<{ id: string }>();
   const [category, setCategory] = useState<Category | null>(null);
+  const [children, setChildren] = useState<Category[]>([]);
+  const [parent, setParent] = useState<Category | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([fetch("/api/admin/categories").then((r) => r.json()), fetch("/api/admin/products").then((r) => r.json())])
       .then(([categories, catalog]) => {
-        setCategory((categories as Category[]).find((c) => c.id === id) || null);
+        const rows = categories as Category[];
+        const current = rows.find((c) => c.id === id) || null;
+        setCategory(current);
+        setChildren(rows.filter((c) => c.parentId === id));
+        setParent(current?.parentId ? rows.find((c) => c.id === current.parentId) || null : null);
         setProducts((catalog.products as Product[]).filter((p) => p.categoryId === id));
       })
       .finally(() => setLoading(false));
@@ -39,7 +52,14 @@ export default function CategoryProductsPage() {
   return (
     <>
       <p className="crumb">
-        <Link href="/admin/products">Categories</Link> / {category.name}
+        <Link href="/admin/products">Categories</Link>
+        {parent ? (
+          <>
+            {" "}
+            / <Link href={`/admin/products/category/${parent.id}`}>{parent.name}</Link>
+          </>
+        ) : null}{" "}
+        / {category.name}
       </p>
       <div className="page-head">
         <div className="title-row">
@@ -53,11 +73,35 @@ export default function CategoryProductsPage() {
           <Link className="btn g" href={`/admin/products/category/${category.id}/edit`}>
             Edit category
           </Link>
+          {!category.parentId ? (
+            <Link className="btn g" href={`/admin/products/category/new?parent=${category.id}`}>
+              Add subcategory
+            </Link>
+          ) : null}
           <Link className="btn" href={`/admin/products/new?category=${category.id}`}>
             Add product
           </Link>
         </div>
       </div>
+      {children.length > 0 ? (
+        <>
+          <h2>Subcategories</h2>
+          <div className="grid">
+            {children.map((child) => (
+              <Link key={child.id} href={`/admin/products/category/${child.id}`} className="pc cat-link">
+                {child.imageUrl ? <img src={child.imageUrl} alt="" /> : <div className="ph">No image</div>}
+                <div>
+                  <b>{child.name}</b>
+                  <p>{child.description || "No description"}</p>
+                  <span className="pill">
+                    {child.productCount} product{child.productCount === 1 ? "" : "s"}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
+      ) : null}
       {products.length === 0 ? (
         <div className="bx empty">No products yet. Add the first one for this category.</div>
       ) : (

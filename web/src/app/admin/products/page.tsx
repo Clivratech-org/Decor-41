@@ -8,7 +8,9 @@ type Category = {
   name: string;
   description: string;
   imageUrl: string | null;
+  parentId: string | null;
   productCount: number;
+  childCount: number;
 };
 
 export default function AdminProductsHome() {
@@ -38,7 +40,9 @@ export default function AdminProductsHome() {
         </Link>
       </div>
       <div className="grid">
-        {categories.map((c) => (
+        {categories
+          .filter((c) => !c.parentId)
+          .map((c) => (
           <Link key={c.id} href={`/admin/products/category/${c.id}`} className="pc cat-link">
             {c.imageUrl ? <img src={c.imageUrl} alt="" /> : <div className="ph">No image</div>}
             <div>
@@ -46,6 +50,7 @@ export default function AdminProductsHome() {
               <p>{c.description || "No description"}</p>
               <span className="pill">
                 {c.productCount} product{c.productCount === 1 ? "" : "s"}
+                {c.childCount ? ` · ${c.childCount} sub` : ""}
               </span>
             </div>
           </Link>

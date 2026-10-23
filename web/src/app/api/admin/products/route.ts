@@ -14,6 +14,29 @@ function parseVariantNames(raw: string) {
     .filter(Boolean);
 }
 
+type VariantInput = { id?: string; name: string; price: number };
+
+function normalizeVariants(raw: unknown, fallbackPrice: number): VariantInput[] {
+  if (Array.isArray(raw)) {
+    const rows = raw
+      .map((item) => {
+        const row = item as { id?: string; name?: string; price?: number };
+        return {
+          id: row.id,
+          name: String(row.name || "").trim(),
+          price: Math.max(0, Math.round(Number(row.price) || 0)),
+        };
+      })
+      .filter((row) => row.name);
+    if (rows.length) return rows;
+  }
+  if (typeof raw === "string") {
+    const names = parseVariantNames(raw);
+    if (names.length) return names.map((name) => ({ name, price: Math.max(0, Math.round(fallbackPrice)) }));
+  }
+  return [{ name: "Standard", price: Math.max(0, Math.round(fallbackPrice)) }];
+}
+
 const COLORS = ["#c58b55", "#5b6277", "#f0b73a", "#3dd6ff", "#c6ff3d", "#ff5d6c"];
 
 function mapProduct(p: {
@@ -40,7 +63,7 @@ function mapProduct(p: {
     description: p.description,
     price: p.variants[0]?.price ?? 0,
     stock: p.stock,
-    variants: p.variants.map((v) => v.name).join(", "),
+    variants: p.variants.map((v) => ({ id: v.id, name: v.name, price: v.price })),
     imageUrl: p.imageUrl,
     visible: p.visible,
     artKey: p.artKey,
@@ -75,7 +98,7 @@ export async function POST(req: Request) {
     description?: string;
     price?: number;
     stock?: number;
-    variants?: string;
+    variants?: unknown;
     imageUrl?: string;
     visible?: boolean;
   };
@@ -84,9 +107,8 @@ export async function POST(req: Request) {
   if (!categoryId) {
     return NextResponse.json({ error: "categoryId required" }, { status: 400 });
   }
-  const price = Math.round(Number(body.price) || 0);
   const stock = Math.max(0, Math.round(Number(body.stock) || 0));
-  const names = parseVariantNames(body.variants || "Standard");
+  const variants = normalizeVariants(body.variants, Number(body.price) || 0);
   const max = await prisma.product.aggregate({ _max: { id: true } });
   const id = (max._max.id ?? 0) + 1;
   let slug = slugify(name);
@@ -109,9 +131,9 @@ export async function POST(req: Request) {
       imageUrl: body.imageUrl?.trim() || null,
       artKey: id,
       variants: {
-        create: names.map((n, i) => ({
-          name: n,
-          price,
+        create: variants.map((variant, i) => ({
+          name: variant.name,
+          price: variant.price,
           color: COLORS[i % COLORS.length],
           sortOrder: i,
         })),
@@ -134,7 +156,7 @@ export async function PUT(req: Request) {
     description?: string;
     price?: number;
     stock?: number;
-    variants?: string;
+    variants?: unknown;
     imageUrl?: string;
     visible?: boolean;
   };
@@ -147,9 +169,11 @@ export async function PUT(req: Request) {
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const price = Math.round(Number(body.price) ?? existing.variants[0]?.price ?? 0);
   const stock = body.stock !== undefined ? Math.max(0, Math.round(Number(body.stock))) : existing.stock;
-  const names = parseVariantNames(body.variants ?? existing.variants.map((v) => v.name).join(", "));
+  const variants = normalizeVariants(
+    body.variants ?? existing.variants.map((v) => ({ id: v.id, name: v.name, price: v.price })),
+    existing.variants[0]?.price ?? Number(body.price) || 0,
+  );
   const name = body.name?.trim() || existing.name;
   const categoryId = body.categoryId || existing.categoryId;
 
@@ -166,34 +190,33 @@ export async function PUT(req: Request) {
     },
   });
 
-  const byName = new Map(existing.variants.map((v) => [v.name.toLowerCase(), v]));
   const kept = new Set<string>();
 
-  for (let i = 0; i < names.length; i++) {
-    const n = names[i];
-    const key = n.toLowerCase();
-    kept.add(key);
-    const prev = byName.get(key);
+  for (let i = 0; i < variants.length; i++) {
+    const variant = variants[i];
+    const prev = variant.id ? existing.variants.find((row) => row.id === variant.id) : undefined;
     if (prev) {
+      kept.add(prev.id);
       await prisma.productVariant.update({
         where: { id: prev.id },
-        data: { name: n, price, sortOrder: i },
+        data: { name: variant.name, price: variant.price, sortOrder: i },
       });
     } else {
-      await prisma.productVariant.create({
+      const created = await prisma.productVariant.create({
         data: {
           productId: id,
-          name: n,
-          price,
+          name: variant.name,
+          price: variant.price,
           color: COLORS[i % COLORS.length],
           sortOrder: i,
         },
       });
+      kept.add(created.id);
     }
   }
 
   for (const v of existing.variants) {
-    if (!kept.has(v.name.toLowerCase())) {
+    if (!kept.has(v.id)) {
       await prisma.productVariant.delete({ where: { id: v.id } });
     }
   }

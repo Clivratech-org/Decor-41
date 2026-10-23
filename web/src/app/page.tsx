@@ -12,12 +12,14 @@ export default async function Page() {
 
   return (
     <HomePage
-      categories={categories.map((c) => ({
-        slug: c.slug,
-        name: c.name,
-        description: c.description,
-        imageUrl: c.imageUrl,
-      }))}
+      categories={categories
+        .filter((c) => !c.parentId)
+        .map((c) => ({
+          slug: c.slug,
+          name: c.name,
+          description: c.description,
+          imageUrl: c.imageUrl,
+        }))}
       products={products}
       settings={settings}
       coupons={coupons}

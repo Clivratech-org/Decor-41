@@ -5,15 +5,20 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ImageField } from "@/components/admin/ImageField";
 
+export type VariantDraft = {
+  id?: string;
+  name: string;
+  price: number;
+};
+
 export type ProductDraft = {
   id?: number;
   name: string;
   categoryId: string;
   tagline: string;
   description: string;
-  price: number;
   stock: number;
-  variants: string;
+  variants: VariantDraft[];
   imageUrl: string;
   visible: boolean;
 };
@@ -34,9 +39,25 @@ export function ProductForm({
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function updateVariant(index: number, patch: Partial<VariantDraft>) {
+    setForm((prev) => ({
+      ...prev,
+      variants: prev.variants.map((variant, i) => (i === index ? { ...variant, ...patch } : variant)),
+    }));
+  }
+
   async function save() {
     if (!form.name.trim()) {
       setError("Product name is required");
+      return;
+    }
+    const variants = form.variants.map((variant) => ({
+      ...variant,
+      name: variant.name.trim(),
+      price: Math.max(0, Math.round(Number(variant.price) || 0)),
+    }));
+    if (!variants.length || variants.some((variant) => !variant.name)) {
+      setError("Each variant needs a name");
       return;
     }
     setBusy(true);
@@ -44,7 +65,7 @@ export function ProductForm({
     const res = await fetch("/api/admin/products", {
       method: form.id ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, variants }),
     });
     const data = await res.json();
     setBusy(false);
@@ -75,7 +96,7 @@ export function ProductForm({
           <div className="preview lg">{form.imageUrl ? <img src={form.imageUrl} alt="" /> : <span>Image preview</span>}</div>
           <b>{form.name || "Product name"}</b>
           <span>{form.tagline || "Short line shown on the card"}</span>
-          <strong>₹{Number(form.price) || 0}</strong>
+          <strong>₹{Number(form.variants[0]?.price) || 0}</strong>
         </div>
       </div>
       <div className="bx form-grid">
@@ -85,22 +106,44 @@ export function ProductForm({
         <input value={form.tagline} onChange={(e) => set("tagline", e.target.value)} placeholder="Shown under the name" />
         <label>Description</label>
         <textarea rows={5} value={form.description} onChange={(e) => set("description", e.target.value)} />
-        <div className="split">
-          <div>
-            <label>Price (₹)</label>
-            <input type="number" min={0} value={form.price} onChange={(e) => set("price", Number(e.target.value))} />
+        <label>Stock</label>
+        <input type="number" min={0} value={form.stock} onChange={(e) => set("stock", Number(e.target.value))} />
+        <label>Variants</label>
+        <p className="hint">Each option has its own price. Customers choose one on the product page.</p>
+        {form.variants.map((variant, index) => (
+          <div className="variant-row" key={variant.id || index}>
+            <input
+              value={variant.name}
+              placeholder="Option name"
+              aria-label={`Variant ${index + 1} name`}
+              onChange={(e) => updateVariant(index, { name: e.target.value })}
+            />
+            <input
+              type="number"
+              min={0}
+              value={variant.price}
+              aria-label={`Variant ${index + 1} price`}
+              onChange={(e) => updateVariant(index, { price: Number(e.target.value) })}
+            />
+            <button
+              className="btn g"
+              type="button"
+              disabled={form.variants.length === 1}
+              onClick={() => set("variants", form.variants.filter((_, i) => i !== index))}
+            >
+              Remove
+            </button>
           </div>
-          <div>
-            <label>Stock</label>
-            <input type="number" min={0} value={form.stock} onChange={(e) => set("stock", Number(e.target.value))} />
-          </div>
-        </div>
-        <label>Options, separated by commas</label>
-        <input
-          value={form.variants}
-          onChange={(e) => set("variants", e.target.value)}
-          placeholder="Natural wood, Black acrylic"
-        />
+        ))}
+        <button
+          className="btn g"
+          type="button"
+          onClick={() =>
+            set("variants", [...form.variants, { name: "", price: form.variants[0]?.price || 0 }])
+          }
+        >
+          Add variant
+        </button>
         <ImageField label="Product image" folder="products" value={form.imageUrl} onChange={(url) => set("imageUrl", url)} />
         <label className="check">
           <input type="checkbox" checked={form.visible} onChange={(e) => set("visible", e.target.checked)} />

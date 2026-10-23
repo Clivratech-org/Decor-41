@@ -25,7 +25,13 @@ export async function getProducts(opts?: { categorySlug?: string; q?: string; in
   const products = await prisma.product.findMany({
     where: {
       ...(opts?.includeHidden ? {} : { visible: true }),
-      ...(opts?.categorySlug ? { category: { slug: opts.categorySlug } } : {}),
+      ...(opts?.categorySlug
+        ? {
+            category: {
+              OR: [{ slug: opts.categorySlug }, { parent: { slug: opts.categorySlug } }],
+            },
+          }
+        : {}),
       ...(opts?.q
         ? {
             OR: [
