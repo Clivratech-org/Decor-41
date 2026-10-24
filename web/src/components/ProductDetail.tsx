@@ -43,6 +43,8 @@ export function ProductDetail({
   const price = variant?.price || 0;
   const stock = variant?.stock ?? 0;
   const mrp = mrpFrom(product.variants[0]?.price || price);
+  const photos = product.images || [];
+  const photo = photos[i] || photos[0];
 
   function add(buy?: boolean) {
     if (!variant || stock < 1) return;
@@ -76,19 +78,29 @@ export function ProductDetail({
           <div className="gal">
             <div className="main">
               <span className="tag">{Math.round((1 - price / mrp) * 100)}% off</span>
-              {product.imageUrl ? (
+              {photo ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={product.imageUrl} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={photo} alt={`${product.name} photo ${Math.min(i, photos.length - 1) + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
                 <ProductArt artKey={product.artKey} color={variant.color} variantIndex={v} view={i} label={product.name} />
               )}
+              {photos.length > 1 ? <span className="photo-count">{Math.min(i, photos.length - 1) + 1} / {photos.length}</span> : null}
             </div>
             <div className="thumbs">
-              {[0, 1, 2].map((j) => (
-                <button key={j} className={j === i ? "on" : ""} aria-label={`View ${j + 1}`} onClick={() => setI(j)} type="button">
-                  <ProductArt artKey={product.artKey} color={variant.color} variantIndex={v} view={j} label={product.name} />
-                </button>
-              ))}
+              {photos.length > 1
+                ? photos.map((url, j) => (
+                    <button key={url} className={j === i ? "on" : ""} aria-label={`Photo ${j + 1}`} onClick={() => setI(j)} type="button">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt="" />
+                    </button>
+                  ))
+                : photos.length === 0
+                  ? [0, 1, 2].map((j) => (
+                      <button key={j} className={j === i ? "on" : ""} aria-label={`View ${j + 1}`} onClick={() => setI(j)} type="button">
+                        <ProductArt artKey={product.artKey} color={variant.color} variantIndex={v} view={j} label={product.name} />
+                      </button>
+                    ))
+                  : null}
             </div>
           </div>
           <div>

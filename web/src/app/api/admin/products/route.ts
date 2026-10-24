@@ -1,7 +1,7 @@
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
-import { normalizeMediaUrl } from "@/lib/storage";
+import { cleanProductPhotos, productPhotoList } from "@/lib/photos";
 import { NextResponse } from "next/server";
 
 const PLACEHOLDER_FEATURES = JSON.stringify([["Quality build", "Crafted for everyday use."]]);
@@ -56,12 +56,14 @@ function mapProduct(p: {
   description: string;
   stock: number;
   imageUrl: string | null;
+  images: string;
   visible: boolean;
   artKey: number;
   category: { name: string };
   variants: { id: string; name: string; price: number; stock: number }[];
 }) {
   const prices = p.variants.map((v) => v.price);
+  const images = productPhotoList(p.images, p.imageUrl);
   return {
     id: p.id,
     slug: p.slug,
@@ -73,7 +75,8 @@ function mapProduct(p: {
     price: prices.length ? Math.min(...prices) : 0,
     stock: p.variants.reduce((sum, v) => sum + v.stock, 0),
     variants: p.variants.map((v) => ({ id: v.id, name: v.name, price: v.price, stock: v.stock })),
-    imageUrl: normalizeMediaUrl(p.imageUrl),
+    imageUrl: images[0] || null,
+    images,
     visible: p.visible,
     artKey: p.artKey,
   };
@@ -109,6 +112,7 @@ export async function POST(req: Request) {
     stock?: number;
     variants?: unknown;
     imageUrl?: string;
+    images?: unknown;
     visible?: boolean;
   };
   const name = body.name?.trim() || "Untitled";
@@ -118,6 +122,7 @@ export async function POST(req: Request) {
   }
   const variants = normalizeVariants(body.variants, Number(body.price) || 0, Number(body.stock) || 0);
   const stock = variants.reduce((sum, variant) => sum + variant.stock, 0);
+  const images = body.images !== undefined ? cleanProductPhotos(body.images) : cleanProductPhotos(body.imageUrl ? [body.imageUrl] : []);
   const max = await prisma.product.aggregate({ _max: { id: true } });
   const id = (max._max.id ?? 0) + 1;
   let slug = slugify(name);
@@ -137,7 +142,8 @@ export async function POST(req: Request) {
       sizes: DEFAULT_SIZES,
       stock,
       visible: body.visible !== false,
-      imageUrl: body.imageUrl?.trim() || null,
+      imageUrl: images[0] || null,
+      images: JSON.stringify(images),
       artKey: id,
       variants: {
         create: variants.map((variant, i) => ({
@@ -168,6 +174,7 @@ export async function PUT(req: Request) {
     stock?: number;
     variants?: unknown;
     imageUrl?: string;
+    images?: unknown;
     visible?: boolean;
   };
   const id = Number(body.id);
@@ -185,6 +192,8 @@ export async function PUT(req: Request) {
     existing.stock,
   );
   const stock = variants.reduce((sum, variant) => sum + variant.stock, 0);
+  const images =
+    body.images !== undefined ? cleanProductPhotos(body.images) : productPhotoList(existing.images, existing.imageUrl);
   const name = body.name?.trim() || existing.name;
   const categoryId = body.categoryId || existing.categoryId;
 
@@ -197,7 +206,8 @@ export async function PUT(req: Request) {
       description: body.description !== undefined ? body.description.trim() || existing.description : existing.description,
       stock,
       visible: body.visible !== undefined ? !!body.visible : existing.visible,
-      imageUrl: body.imageUrl !== undefined ? body.imageUrl.trim() || null : existing.imageUrl,
+      imageUrl: images[0] || null,
+      images: JSON.stringify(images),
     },
   });
 

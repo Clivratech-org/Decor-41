@@ -14,6 +14,7 @@ type Product = {
   stock: number;
   variants: { id: string; name: string; price: number; stock: number }[];
   imageUrl: string | null;
+  images?: string[];
   visible: boolean;
 };
 
@@ -45,7 +46,7 @@ export default function EditProductPage() {
         variants: product.variants?.length
           ? product.variants.map((variant) => ({ ...variant, stock: variant.stock || 0 }))
           : [{ name: "Standard", price: 0, stock: product.stock || 0 }],
-        imageUrl: product.imageUrl || "",
+        images: product.images?.length ? product.images : product.imageUrl ? [product.imageUrl] : [],
         visible: product.visible,
       }}
     />

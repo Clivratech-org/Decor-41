@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { productPhotoList } from "./photos";
 import { normalizeMediaUrl } from "./storage";
 
 export type ProductCard = {
@@ -11,6 +12,7 @@ export type ProductCard = {
   stock: number;
   artKey: number;
   imageUrl: string | null;
+  images: string[];
   categorySlug: string;
   categoryName: string;
   fromPrice: number;
@@ -90,11 +92,13 @@ function mapProduct(p: {
   stock: number;
   artKey: number;
   imageUrl: string | null;
+  images: string;
   sizes: string;
   category: { slug: string; name: string };
   variants: { id: string; name: string; price: number; stock: number; color: string }[];
 }): ProductCard {
   const prices = p.variants.map((v) => v.price);
+  const images = productPhotoList(p.images, p.imageUrl);
   return {
     id: p.id,
     slug: p.slug,
@@ -104,7 +108,8 @@ function mapProduct(p: {
     reviewCount: p.reviewCount,
     stock: p.variants.reduce((sum, v) => sum + v.stock, 0),
     artKey: p.artKey,
-    imageUrl: normalizeMediaUrl(p.imageUrl),
+    imageUrl: images[0] || null,
+    images,
     categorySlug: p.category.slug,
     categoryName: p.category.name,
     fromPrice: prices.length ? Math.min(...prices) : 0,

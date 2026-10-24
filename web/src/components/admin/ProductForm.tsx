@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ImageField } from "@/components/admin/ImageField";
+import { ProductPhotos } from "@/components/admin/ProductPhotos";
 
 export type VariantDraft = {
   id?: string;
@@ -20,7 +20,7 @@ export type ProductDraft = {
   description: string;
   stock: number;
   variants: VariantDraft[];
-  imageUrl: string;
+  images: string[];
   visible: boolean;
 };
 
@@ -67,7 +67,7 @@ export function ProductForm({
     const res = await fetch("/api/admin/products", {
       method: form.id ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, variants }),
+      body: JSON.stringify({ ...form, variants, images: form.images.slice(0, 3), imageUrl: form.images[0] || "" }),
     });
     const data = await res.json();
     setBusy(false);
@@ -98,7 +98,9 @@ export function ProductForm({
         <h1>{form.id ? form.name || "Edit product" : "New product"}</h1>
         <p className="lead">This is the product customers see in {categoryName}.</p>
         <div className="preview-card">
-          <div className="preview lg">{form.imageUrl ? <img src={form.imageUrl} alt="" /> : <span>Image preview</span>}</div>
+          <div className="preview lg">
+            {form.images[0] ? <img src={form.images[0]} alt="" /> : <span>Cover photo</span>}
+          </div>
           <b>{form.name || "Product name"}</b>
           <span>{form.tagline || "Short line shown on the card"}</span>
           <strong>
@@ -107,6 +109,7 @@ export function ProductForm({
               : `₹${prices[0] || 0}`}
           </strong>
           <span>{totalStock} in stock across options</span>
+          <span>{form.images.length ? `${form.images.length} photo${form.images.length === 1 ? "" : "s"}` : "No photos yet"}</span>
         </div>
       </div>
       <div className="bx form-grid">
@@ -173,12 +176,7 @@ export function ProductForm({
         >
           Add variant
         </button>
-        <ImageField
-          label="Product image"
-          folder="products"
-          value={form.imageUrl}
-          onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url }))}
-        />
+        <ProductPhotos images={form.images} onChange={(images) => set("images", images)} />
         <label className="check">
           <input type="checkbox" checked={form.visible} onChange={(e) => set("visible", e.target.checked)} />
           Visible on the store

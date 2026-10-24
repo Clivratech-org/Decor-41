@@ -45,6 +45,7 @@ model Product {
   visible     Boolean           @default(true)
   artKey      Int               @default(1)
   imageUrl    String?
+  images      String            @default("[]")
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   variants    ProductVariant[]
