@@ -50,7 +50,7 @@ export default function AdminProductsHome() {
               <p>{c.description || "No description"}</p>
               <span className="pill">
                 {c.productCount} product{c.productCount === 1 ? "" : "s"}
-                {c.childCount ? ` · ${c.childCount} sub` : ""}
+                {c.childCount ? ` · ${c.childCount} subcategor${c.childCount === 1 ? "y" : "ies"}` : ""}
               </span>
             </div>
           </Link>

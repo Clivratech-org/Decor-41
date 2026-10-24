@@ -100,7 +100,7 @@ export function CategoryForm({
           label="Category image"
           folder="categories"
           value={form.imageUrl}
-          onChange={(imageUrl) => setForm({ ...form, imageUrl })}
+          onChange={(imageUrl) => setForm((prev) => ({ ...prev, imageUrl }))}
         />
         {error ? <p className="err">{error}</p> : null}
         <div className="actions">

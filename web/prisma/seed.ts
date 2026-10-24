@@ -357,6 +357,7 @@ async function main() {
           create: p.variants.map((v, i) => ({
             name: v.name,
             price: v.price,
+            stock: p.stock,
             color: v.color,
             sortOrder: i,
           })),

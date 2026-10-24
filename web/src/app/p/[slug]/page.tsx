@@ -27,7 +27,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <ProductDetail
       product={product}
       related={related}
-      categories={cats.map((c) => ({ slug: c.slug, name: c.name }))}
+      categories={cats.filter((c) => !c.parentId).map((c) => ({ slug: c.slug, name: c.name }))}
       settings={settings}
     />
   );

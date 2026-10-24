@@ -36,7 +36,9 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           <div>
             <h1>{c.name}</h1>
             <p className="mut">
-              {c.description} · {products.length} products
+              {c.description}
+              {children.length ? ` · ${children.length} subcategor${children.length === 1 ? "y" : "ies"}` : ""}
+              {` · ${products.length} product${products.length === 1 ? "" : "s"}`}
             </p>
           </div>
         </div>
@@ -49,7 +51,10 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                     <img src={child.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : null}
                 </div>
-                <b>{child.name}</b>
+                <span>
+                  {child.name}
+                  {child.description ? <small>{child.description}</small> : null}
+                </span>
               </Link>
             ))}
           </div>

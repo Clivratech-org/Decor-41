@@ -1,6 +1,7 @@
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
+import { normalizeMediaUrl } from "@/lib/storage";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -18,7 +19,7 @@ export async function GET() {
       name: c.name,
       description: c.description,
       sortOrder: c.sortOrder,
-      imageUrl: c.imageUrl,
+      imageUrl: normalizeMediaUrl(c.imageUrl),
       parentId: c.parentId,
       productCount: c._count.products,
       childCount: c._count.children,

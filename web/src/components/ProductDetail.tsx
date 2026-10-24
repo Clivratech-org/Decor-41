@@ -41,10 +41,11 @@ export function ProductDetail({
   const router = useRouter();
   const variant = product.variants[v];
   const price = variant?.price || 0;
+  const stock = variant?.stock ?? 0;
   const mrp = mrpFrom(product.variants[0]?.price || price);
 
   function add(buy?: boolean) {
-    if (!variant) return;
+    if (!variant || stock < 1) return;
     addItem({
       productId: product.id,
       slug: product.slug,
@@ -53,11 +54,12 @@ export function ProductDetail({
       categoryName: product.categoryName,
       artKey: product.artKey,
       variantIndex: v,
+      variantId: variant.id,
       variantName: variant.name,
       color: variant.color,
       size: product.sizes[s] || "Standard",
       price,
-      qty: q,
+      qty: Math.min(q, stock),
     });
     if (buy) router.push("/checkout");
     else showToast("Added to cart ✓");
@@ -107,7 +109,7 @@ export function ProductDetail({
             </p>
             <div className="sw">
               {product.variants.map((y, j) => (
-                <button key={y.id} className={`op ${j === v ? "on" : ""}`} onClick={() => { setV(j); setI(0); }} type="button">
+                <button key={y.id} className={`op ${j === v ? "on" : ""}`} onClick={() => { setV(j); setI(0); setQ(1); }} type="button">
                   <span className="dot" style={{ background: y.color }} />
                   {y.name}
                 </button>
@@ -130,20 +132,21 @@ export function ProductDetail({
               <s className="mut">{rupees(mrp)}</s>
               <span style={{ color: "var(--at)" }}>Save {rupees(mrp - price)}</span>
             </div>
+            <p className="mut">{stock > 0 ? `${stock} in stock for ${variant.name}` : `${variant.name} is out of stock`}</p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
               <div className="qty">
                 <button aria-label="Less" onClick={() => setQ(Math.max(1, q - 1))} type="button">
                   −
                 </button>
                 <span>{q}</span>
-                <button aria-label="More" onClick={() => setQ(Math.min(9, q + 1))} type="button">
+                <button aria-label="More" onClick={() => setQ(Math.min(stock || 1, 9, q + 1))} type="button" disabled={stock < 1}>
                   +
                 </button>
               </div>
-              <button className="btn" onClick={() => add()} type="button">
+              <button className="btn" onClick={() => add()} type="button" disabled={stock < 1}>
                 Add to cart
               </button>
-              <button className="btn g" onClick={() => add(true)} type="button">
+              <button className="btn g" onClick={() => add(true)} type="button" disabled={stock < 1}>
                 Buy now
               </button>
             </div>

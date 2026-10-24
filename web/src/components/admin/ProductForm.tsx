@@ -9,6 +9,7 @@ export type VariantDraft = {
   id?: string;
   name: string;
   price: number;
+  stock: number;
 };
 
 export type ProductDraft = {
@@ -55,6 +56,7 @@ export function ProductForm({
       ...variant,
       name: variant.name.trim(),
       price: Math.max(0, Math.round(Number(variant.price) || 0)),
+      stock: Math.max(0, Math.round(Number(variant.stock) || 0)),
     }));
     if (!variants.length || variants.some((variant) => !variant.name)) {
       setError("Each variant needs a name");
@@ -83,6 +85,9 @@ export function ProductForm({
     if (res.ok) router.push(`/admin/products/category/${form.categoryId}`);
   }
 
+  const prices = form.variants.map((variant) => Number(variant.price) || 0);
+  const totalStock = form.variants.reduce((sum, variant) => sum + (Number(variant.stock) || 0), 0);
+
   return (
     <div className="editor">
       <div className="editor-copy">
@@ -96,7 +101,12 @@ export function ProductForm({
           <div className="preview lg">{form.imageUrl ? <img src={form.imageUrl} alt="" /> : <span>Image preview</span>}</div>
           <b>{form.name || "Product name"}</b>
           <span>{form.tagline || "Short line shown on the card"}</span>
-          <strong>₹{Number(form.variants[0]?.price) || 0}</strong>
+          <strong>
+            {prices.length > 1 && prices.some((price) => price !== prices[0])
+              ? `From ₹${Math.min(...prices)}`
+              : `₹${prices[0] || 0}`}
+          </strong>
+          <span>{totalStock} in stock across options</span>
         </div>
       </div>
       <div className="bx form-grid">
@@ -106,45 +116,69 @@ export function ProductForm({
         <input value={form.tagline} onChange={(e) => set("tagline", e.target.value)} placeholder="Shown under the name" />
         <label>Description</label>
         <textarea rows={5} value={form.description} onChange={(e) => set("description", e.target.value)} />
-        <label>Stock</label>
-        <input type="number" min={0} value={form.stock} onChange={(e) => set("stock", Number(e.target.value))} />
         <label>Variants</label>
-        <p className="hint">Each option has its own price. Customers choose one on the product page.</p>
-        {form.variants.map((variant, index) => (
-          <div className="variant-row" key={variant.id || index}>
-            <input
-              value={variant.name}
-              placeholder="Option name"
-              aria-label={`Variant ${index + 1} name`}
-              onChange={(e) => updateVariant(index, { name: e.target.value })}
-            />
-            <input
-              type="number"
-              min={0}
-              value={variant.price}
-              aria-label={`Variant ${index + 1} price`}
-              onChange={(e) => updateVariant(index, { price: Number(e.target.value) })}
-            />
-            <button
-              className="btn g"
-              type="button"
-              disabled={form.variants.length === 1}
-              onClick={() => set("variants", form.variants.filter((_, i) => i !== index))}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
+        <p className="hint">Each option has its own price and stock. Customers choose one on the product page.</p>
+        <div className="variant-list">
+          {form.variants.map((variant, index) => (
+            <div className="variant-row" key={variant.id || index}>
+              <label className="variant-field name">
+                <span>Option</span>
+                <input
+                  value={variant.name}
+                  placeholder="Standard, Premium…"
+                  aria-label={`Variant ${index + 1} name`}
+                  onChange={(e) => updateVariant(index, { name: e.target.value })}
+                />
+              </label>
+              <label className="variant-field">
+                <span>Price (₹)</span>
+                <input
+                  type="number"
+                  min={0}
+                  value={variant.price}
+                  aria-label={`Variant ${index + 1} price`}
+                  onChange={(e) => updateVariant(index, { price: Number(e.target.value) })}
+                />
+              </label>
+              <label className="variant-field">
+                <span>Stock</span>
+                <input
+                  type="number"
+                  min={0}
+                  value={variant.stock}
+                  aria-label={`Variant ${index + 1} stock`}
+                  onChange={(e) => updateVariant(index, { stock: Number(e.target.value) })}
+                />
+              </label>
+              <button
+                className="btn g"
+                type="button"
+                disabled={form.variants.length === 1}
+                onClick={() => set("variants", form.variants.filter((_, i) => i !== index))}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
         <button
           className="btn g"
           type="button"
           onClick={() =>
-            set("variants", [...form.variants, { name: "", price: form.variants[0]?.price || 0 }])
+            set("variants", [
+              ...form.variants,
+              { name: "", price: form.variants[0]?.price || 0, stock: 0 },
+            ])
           }
         >
           Add variant
         </button>
-        <ImageField label="Product image" folder="products" value={form.imageUrl} onChange={(url) => set("imageUrl", url)} />
+        <ImageField
+          label="Product image"
+          folder="products"
+          value={form.imageUrl}
+          onChange={(url) => setForm((prev) => ({ ...prev, imageUrl: url }))}
+        />
         <label className="check">
           <input type="checkbox" checked={form.visible} onChange={(e) => set("visible", e.target.checked)} />
           Visible on the store

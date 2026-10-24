@@ -11,6 +11,7 @@ export type CartLine = {
   categoryName: string;
   artKey: number;
   variantIndex: number;
+  variantId?: string;
   variantName: string;
   color: string;
   size: string;
@@ -78,7 +79,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<CartContextValue>(() => {
     const addItem: CartContextValue["addItem"] = (item) => {
-      const key = `${item.productId}-${item.variantIndex}-${item.size}`;
+      const key = `${item.productId}-${item.variantId || item.variantIndex}-${item.size}`;
       const qty = item.qty ?? 1;
       setCart((prev) => {
         const existing = prev.find((c) => c.key === key);

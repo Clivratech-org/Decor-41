@@ -12,7 +12,7 @@ type Product = {
   tagline: string;
   description: string;
   stock: number;
-  variants: { id: string; name: string; price: number }[];
+  variants: { id: string; name: string; price: number; stock: number }[];
   imageUrl: string | null;
   visible: boolean;
 };
@@ -42,7 +42,9 @@ export default function EditProductPage() {
         tagline: product.tagline || "",
         description: product.description || "",
         stock: product.stock,
-        variants: product.variants?.length ? product.variants : [{ name: "Standard", price: 0 }],
+        variants: product.variants?.length
+          ? product.variants.map((variant) => ({ ...variant, stock: variant.stock || 0 }))
+          : [{ name: "Standard", price: 0, stock: product.stock || 0 }],
         imageUrl: product.imageUrl || "",
         visible: product.visible,
       }}

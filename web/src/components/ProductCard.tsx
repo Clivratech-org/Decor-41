@@ -16,8 +16,9 @@ export function ProductCard({ product }: { product: P }) {
 
   function quickAdd(e: React.MouseEvent) {
     e.preventDefault();
-    const v = product.variants[0];
-    if (!v) return;
+    const index = product.variants.findIndex((variant) => variant.stock > 0);
+    const v = product.variants[index] || product.variants[0];
+    if (!v || v.stock < 1) return;
     addItem({
       productId: product.id,
       slug: product.slug,
@@ -25,7 +26,8 @@ export function ProductCard({ product }: { product: P }) {
       categorySlug: product.categorySlug,
       categoryName: product.categoryName,
       artKey: product.artKey,
-      variantIndex: 0,
+      variantIndex: Math.max(0, index),
+      variantId: v.id,
       variantName: v.name,
       color: v.color,
       size: product.sizes[0] || "Standard",
@@ -37,7 +39,9 @@ export function ProductCard({ product }: { product: P }) {
 
   return (
     <Link className="card" href={`/p/${product.slug}`}>
-      <span className="tag">{product.categorySlug === "laser" ? "Made to order" : "In stock"}</span>
+      <span className="tag">
+        {product.stock > 0 ? (product.categorySlug === "laser" ? "Made to order" : "In stock") : "Out of stock"}
+      </span>
       <div className="art">
         {product.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

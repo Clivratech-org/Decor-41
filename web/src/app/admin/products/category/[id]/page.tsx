@@ -84,42 +84,52 @@ export default function CategoryProductsPage() {
         </div>
       </div>
       {children.length > 0 ? (
-        <>
-          <h2>Subcategories</h2>
-          <div className="grid">
+        <section className="section">
+          <div className="section-head">
+            <h2>Subcategories</h2>
+            <p className="hint">These sit inside {category.name}. Open one to add its own products.</p>
+          </div>
+          <div className="subgrid">
             {children.map((child) => (
-              <Link key={child.id} href={`/admin/products/category/${child.id}`} className="pc cat-link">
+              <Link key={child.id} href={`/admin/products/category/${child.id}`} className="subcard">
                 {child.imageUrl ? <img src={child.imageUrl} alt="" /> : <div className="ph">No image</div>}
                 <div>
+                  <span className="pill">Subcategory</span>
                   <b>{child.name}</b>
-                  <p>{child.description || "No description"}</p>
-                  <span className="pill">
+                  <p>{child.description || "No description yet"}</p>
+                  <span className="hint">
                     {child.productCount} product{child.productCount === 1 ? "" : "s"}
                   </span>
                 </div>
               </Link>
             ))}
           </div>
-        </>
+        </section>
       ) : null}
-      {products.length === 0 ? (
-        <div className="bx empty">No products yet. Add the first one for this category.</div>
-      ) : (
-        <div className="grid">
-          {products.map((p) => (
-            <Link key={p.id} href={`/admin/products/${p.id}`} className="pc cat-link">
-              {p.imageUrl ? <img src={p.imageUrl} alt="" /> : <div className="ph">No image</div>}
-              <div>
-                <b>{p.name}</b>
-                <p>
-                  {rupees(p.price)} · {p.stock} in stock
-                </p>
-                <span className={`pill ${p.visible ? "Paid" : "Lost"}`}>{p.visible ? "Visible" : "Hidden"}</span>
-              </div>
-            </Link>
-          ))}
+      <section className="section">
+        <div className="section-head">
+          <h2>Products</h2>
+          <p className="hint">Products saved directly in {category.name}.</p>
         </div>
-      )}
+        {products.length === 0 ? (
+          <div className="bx empty">No products yet. Add the first one for this category.</div>
+        ) : (
+          <div className="grid">
+            {products.map((p) => (
+              <Link key={p.id} href={`/admin/products/${p.id}`} className="pc cat-link">
+                {p.imageUrl ? <img src={p.imageUrl} alt="" /> : <div className="ph">No image</div>}
+                <div>
+                  <b>{p.name}</b>
+                  <p>
+                    From {rupees(p.price)} · {p.stock} in stock
+                  </p>
+                  <span className={`pill ${p.visible ? "Paid" : "Lost"}`}>{p.visible ? "Visible" : "Hidden"}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </>
   );
 }

@@ -9,7 +9,7 @@ export default async function CheckoutRoute() {
   return (
     <CheckoutPageClient
       settings={settings}
-      categories={cats.map((c) => ({ slug: c.slug, name: c.name }))}
+      categories={cats.filter((c) => !c.parentId).map((c) => ({ slug: c.slug, name: c.name }))}
       razorpayKey={process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || ""}
     />
   );

@@ -515,7 +515,11 @@
 }
 
 .admin-app .preview {
+  position: relative;
   width: 160px;
+  max-width: 100%;
+  height: 120px;
+  min-width: 0;
   border-radius: 12px;
   flex: 0 0 160px;
 }
@@ -526,10 +530,17 @@
 
 .admin-app .preview img,
 .admin-app .ph img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  max-width: 100%;
   object-fit: cover;
   display: block;
+}
+
+.admin-app .ph {
+  position: relative;
 }
 
 .admin-app .preview.lg {
@@ -657,16 +668,92 @@
   margin-top: 8px;
 }
 
+.admin-app .variant-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
 .admin-app .variant-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px auto;
+  grid-template-columns: minmax(0, 1.5fr) minmax(96px, 0.7fr) minmax(84px, 0.6fr) auto;
   gap: 8px;
-  align-items: center;
-  margin-bottom: 8px;
+  align-items: end;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--ln);
+  border-radius: 14px;
+  background: #151b2e;
+}
+
+.admin-app .variant-field {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  min-width: 0;
+}
+
+.admin-app .variant-field span {
+  font-size: 12px;
+  color: var(--mut);
 }
 
 .admin-app .variant-row input {
   margin: 0;
+  width: 100%;
+}
+
+.admin-app .variant-row .btn {
+  margin: 0;
+}
+
+.admin-app .section {
+  margin: 6px 0 22px;
+}
+
+.admin-app .section-head h2 {
+  margin: 0 0 4px;
+}
+
+.admin-app .subgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.admin-app .subcard {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  background: var(--p);
+  border: 1px solid var(--ln);
+  border-radius: 16px;
+  padding: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.admin-app .subcard img,
+.admin-app .subcard .ph {
+  width: 112px;
+  height: 112px;
+  border-radius: 12px;
+}
+
+.admin-app .subcard b {
+  display: block;
+  margin-top: 6px;
+}
+
+.admin-app .subcard p {
+  margin: 4px 0 8px;
+  color: var(--mut);
+}
+
+.admin-app .upload-copy {
+  min-width: 0;
+  flex: 1;
 }
 
 @media (max-width: 860px) {
@@ -700,5 +787,24 @@
   .admin-app .tools select {
     max-width: 100%;
     flex: 1 1 140px;
+  }
+
+  .admin-app .variant-row,
+  .admin-app .subcard {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-app .variant-field.name,
+  .admin-app .variant-row .btn,
+  .admin-app .subcard img,
+  .admin-app .subcard .ph,
+  .admin-app .subcard div {
+    grid-column: 1 / -1;
+  }
+
+  .admin-app .subcard img,
+  .admin-app .subcard .ph {
+    width: 100%;
+    height: 140px;
   }
 }

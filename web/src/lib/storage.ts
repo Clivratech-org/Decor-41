@@ -21,7 +21,21 @@ function client() {
 }
 
 export function mediaUrl(key: string) {
-  return `/api/media?key=${encodeURIComponent(key)}`;
+  const path = key.split("/").map((part) => encodeURIComponent(part)).join("/");
+  return `/api/media/${path}`;
+}
+
+export function normalizeMediaUrl(url: string | null | undefined) {
+  if (!url) return null;
+  try {
+    const parsed = url.startsWith("/") ? new URL(url, "http://local") : new URL(url);
+    if (!parsed.pathname.startsWith("/api/media")) return url;
+    const queryKey = parsed.searchParams.get("key");
+    if (queryKey && isSafeKey(queryKey)) return mediaUrl(queryKey);
+  } catch {
+    return url;
+  }
+  return url;
 }
 
 export function isSafeKey(key: string) {
@@ -30,7 +44,8 @@ export function isSafeKey(key: string) {
 
 export async function uploadObject(file: File, folder: UploadFolder) {
   const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || "file";
-  const key = `${folder}/${Date.now()}-${safe}`;
+  const rand = Math.random().toString(36).slice(2, 8);
+  const key = `${folder}/${Date.now()}-${rand}-${safe}`;
   await client().send(
     new PutObjectCommand({
       Bucket: required("R2_BUCKET_NAME"),

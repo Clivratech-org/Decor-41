@@ -9,7 +9,7 @@ export default async function CartRoute() {
   return (
     <CartPageClient
       products={products}
-      categories={cats.map((c) => ({ slug: c.slug, name: c.name }))}
+      categories={cats.filter((c) => !c.parentId).map((c) => ({ slug: c.slug, name: c.name }))}
       settings={settings}
     />
   );

@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { normalizeMediaUrl } from "./storage";
 
 export type ProductCard = {
   id: number;
@@ -13,12 +14,13 @@ export type ProductCard = {
   categorySlug: string;
   categoryName: string;
   fromPrice: number;
-  variants: { id: string; name: string; price: number; color: string }[];
+  variants: { id: string; name: string; price: number; stock: number; color: string }[];
   sizes: string[];
 };
 
 export async function getCategories() {
-  return prisma.category.findMany({ orderBy: { sortOrder: "asc" } });
+  const rows = await prisma.category.findMany({ orderBy: { sortOrder: "asc" } });
+  return rows.map((category) => ({ ...category, imageUrl: normalizeMediaUrl(category.imageUrl) }));
 }
 
 export async function getProducts(opts?: { categorySlug?: string; q?: string; includeHidden?: boolean }) {
@@ -90,8 +92,9 @@ function mapProduct(p: {
   imageUrl: string | null;
   sizes: string;
   category: { slug: string; name: string };
-  variants: { id: string; name: string; price: number; color: string }[];
+  variants: { id: string; name: string; price: number; stock: number; color: string }[];
 }): ProductCard {
+  const prices = p.variants.map((v) => v.price);
   return {
     id: p.id,
     slug: p.slug,
@@ -99,13 +102,13 @@ function mapProduct(p: {
     tagline: p.tagline,
     rating: p.rating,
     reviewCount: p.reviewCount,
-    stock: p.stock,
+    stock: p.variants.reduce((sum, v) => sum + v.stock, 0),
     artKey: p.artKey,
-    imageUrl: p.imageUrl,
+    imageUrl: normalizeMediaUrl(p.imageUrl),
     categorySlug: p.category.slug,
     categoryName: p.category.name,
-    fromPrice: p.variants[0]?.price ?? 0,
-    variants: p.variants.map((v) => ({ id: v.id, name: v.name, price: v.price, color: v.color })),
+    fromPrice: prices.length ? Math.min(...prices) : 0,
+    variants: p.variants.map((v) => ({ id: v.id, name: v.name, price: v.price, stock: v.stock, color: v.color })),
     sizes: JSON.parse(p.sizes) as string[],
   };
 }

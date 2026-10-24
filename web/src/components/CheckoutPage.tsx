@@ -105,6 +105,7 @@ export function CheckoutPageClient({
         items: cart.map((c) => ({
           productId: c.productId,
           name: c.name,
+          variantId: c.variantId,
           variant: c.variantName,
           size: c.size,
           unitPrice: c.price,

@@ -1,6 +1,7 @@
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
+import { normalizeMediaUrl } from "@/lib/storage";
 import { NextResponse } from "next/server";
 
 const PLACEHOLDER_FEATURES = JSON.stringify([["Quality build", "Crafted for everyday use."]]);
@@ -14,17 +15,18 @@ function parseVariantNames(raw: string) {
     .filter(Boolean);
 }
 
-type VariantInput = { id?: string; name: string; price: number };
+type VariantInput = { id?: string; name: string; price: number; stock: number };
 
-function normalizeVariants(raw: unknown, fallbackPrice: number): VariantInput[] {
+function normalizeVariants(raw: unknown, fallbackPrice: number, fallbackStock = 0): VariantInput[] {
   if (Array.isArray(raw)) {
     const rows = raw
       .map((item) => {
-        const row = item as { id?: string; name?: string; price?: number };
+        const row = item as { id?: string; name?: string; price?: number; stock?: number };
         return {
           id: row.id,
           name: String(row.name || "").trim(),
           price: Math.max(0, Math.round(Number(row.price) || 0)),
+          stock: Math.max(0, Math.round(Number(row.stock) || 0)),
         };
       })
       .filter((row) => row.name);
@@ -32,9 +34,15 @@ function normalizeVariants(raw: unknown, fallbackPrice: number): VariantInput[] 
   }
   if (typeof raw === "string") {
     const names = parseVariantNames(raw);
-    if (names.length) return names.map((name) => ({ name, price: Math.max(0, Math.round(fallbackPrice)) }));
+    if (names.length) {
+      return names.map((name) => ({
+        name,
+        price: Math.max(0, Math.round(fallbackPrice)),
+        stock: Math.max(0, Math.round(fallbackStock)),
+      }));
+    }
   }
-  return [{ name: "Standard", price: Math.max(0, Math.round(fallbackPrice)) }];
+  return [{ name: "Standard", price: Math.max(0, Math.round(fallbackPrice)), stock: Math.max(0, Math.round(fallbackStock)) }];
 }
 
 const COLORS = ["#c58b55", "#5b6277", "#f0b73a", "#3dd6ff", "#c6ff3d", "#ff5d6c"];
@@ -51,8 +59,9 @@ function mapProduct(p: {
   visible: boolean;
   artKey: number;
   category: { name: string };
-  variants: { id: string; name: string; price: number }[];
+  variants: { id: string; name: string; price: number; stock: number }[];
 }) {
+  const prices = p.variants.map((v) => v.price);
   return {
     id: p.id,
     slug: p.slug,
@@ -61,10 +70,10 @@ function mapProduct(p: {
     categoryName: p.category.name,
     tagline: p.tagline,
     description: p.description,
-    price: p.variants[0]?.price ?? 0,
-    stock: p.stock,
-    variants: p.variants.map((v) => ({ id: v.id, name: v.name, price: v.price })),
-    imageUrl: p.imageUrl,
+    price: prices.length ? Math.min(...prices) : 0,
+    stock: p.variants.reduce((sum, v) => sum + v.stock, 0),
+    variants: p.variants.map((v) => ({ id: v.id, name: v.name, price: v.price, stock: v.stock })),
+    imageUrl: normalizeMediaUrl(p.imageUrl),
     visible: p.visible,
     artKey: p.artKey,
   };
@@ -107,8 +116,8 @@ export async function POST(req: Request) {
   if (!categoryId) {
     return NextResponse.json({ error: "categoryId required" }, { status: 400 });
   }
-  const stock = Math.max(0, Math.round(Number(body.stock) || 0));
-  const variants = normalizeVariants(body.variants, Number(body.price) || 0);
+  const variants = normalizeVariants(body.variants, Number(body.price) || 0, Number(body.stock) || 0);
+  const stock = variants.reduce((sum, variant) => sum + variant.stock, 0);
   const max = await prisma.product.aggregate({ _max: { id: true } });
   const id = (max._max.id ?? 0) + 1;
   let slug = slugify(name);
@@ -134,6 +143,7 @@ export async function POST(req: Request) {
         create: variants.map((variant, i) => ({
           name: variant.name,
           price: variant.price,
+          stock: variant.stock,
           color: COLORS[i % COLORS.length],
           sortOrder: i,
         })),
@@ -169,11 +179,12 @@ export async function PUT(req: Request) {
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const stock = body.stock !== undefined ? Math.max(0, Math.round(Number(body.stock))) : existing.stock;
   const variants = normalizeVariants(
-    body.variants ?? existing.variants.map((v) => ({ id: v.id, name: v.name, price: v.price })),
+    body.variants ?? existing.variants.map((v) => ({ id: v.id, name: v.name, price: v.price, stock: v.stock })),
     (existing.variants[0]?.price ?? Number(body.price)) || 0,
+    existing.stock,
   );
+  const stock = variants.reduce((sum, variant) => sum + variant.stock, 0);
   const name = body.name?.trim() || existing.name;
   const categoryId = body.categoryId || existing.categoryId;
 
@@ -199,7 +210,7 @@ export async function PUT(req: Request) {
       kept.add(prev.id);
       await prisma.productVariant.update({
         where: { id: prev.id },
-        data: { name: variant.name, price: variant.price, sortOrder: i },
+        data: { name: variant.name, price: variant.price, stock: variant.stock, sortOrder: i },
       });
     } else {
       const created = await prisma.productVariant.create({
@@ -207,6 +218,7 @@ export async function PUT(req: Request) {
           productId: id,
           name: variant.name,
           price: variant.price,
+          stock: variant.stock,
           color: COLORS[i % COLORS.length],
           sortOrder: i,
         },

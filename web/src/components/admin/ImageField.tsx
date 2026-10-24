@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function ImageField({
   label,
@@ -17,14 +17,26 @@ export function ImageField({
   const [error, setError] = useState("");
   const [localPreview, setLocalPreview] = useState("");
 
-  async function onFile(file: File | undefined) {
+  useEffect(() => {
+    return () => {
+      if (localPreview) URL.revokeObjectURL(localPreview);
+    };
+  }, [localPreview]);
+
+  function clearLocal() {
+    setLocalPreview("");
+  }
+
+  async function onFile(file: File | undefined, input: HTMLInputElement) {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       setError("Choose a JPG, PNG or WEBP image");
+      input.value = "";
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
       setError("Image must be under 5 MB");
+      input.value = "";
       return;
     }
     const preview = URL.createObjectURL(file);
@@ -37,34 +49,47 @@ export function ImageField({
     const fd = new FormData();
     fd.set("folder", folder);
     fd.set("file", file);
-    const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+    const res = await fetch("/api/admin/upload", { method: "POST", body: fd, cache: "no-store" });
     const data = await res.json().catch(() => ({}));
     setBusy(false);
-    if (!res.ok) {
+    input.value = "";
+    if (!res.ok || typeof data.url !== "string" || !data.url) {
       setError(data.error || "Upload failed");
       return;
     }
-    onChange(data.url);
-    setLocalPreview((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return "";
-    });
+    const uploaded = `${data.url}${data.url.includes("?") ? "&" : "?"}v=${Date.now()}`;
+    const probe = new Image();
+    probe.onload = () => {
+      onChange(data.url);
+      clearLocal();
+    };
+    probe.onerror = () => {
+      setError("The upload finished, but the new image did not load. Try again.");
+    };
+    probe.src = uploaded;
   }
+
+  const shown = localPreview || value;
 
   return (
     <div className="upload">
       <label>{label}</label>
       <div className="upload-row">
-        <div className="preview">
-          {localPreview || value ? <img src={localPreview || value} alt="" /> : <span>No image yet</span>}
+        <div className="preview" aria-hidden={!shown}>
+          {shown ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={shown} alt="" />
+          ) : (
+            <span>No image yet</span>
+          )}
         </div>
-        <div>
+        <div className="upload-copy">
           <input
             type="file"
             accept="image/*"
             aria-label={label}
             disabled={busy}
-            onChange={(e) => onFile(e.target.files?.[0])}
+            onChange={(e) => onFile(e.target.files?.[0], e.currentTarget)}
           />
           <p className="hint">{busy ? "Uploading…" : "JPG, PNG or WEBP. Up to 5 MB."}</p>
           {value ? (
@@ -72,10 +97,7 @@ export function ImageField({
               className="btn g"
               type="button"
               onClick={() => {
-                setLocalPreview((prev) => {
-                  if (prev) URL.revokeObjectURL(prev);
-                  return "";
-                });
+                clearLocal();
                 onChange("");
               }}
             >

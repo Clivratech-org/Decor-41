@@ -20,6 +20,7 @@ const schema = z.object({
       z.object({
         productId: z.number().optional(),
         name: z.string(),
+        variantId: z.string().optional(),
         variant: z.string(),
         size: z.string(),
         unitPrice: z.number().int().positive(),
@@ -56,38 +57,67 @@ export async function POST(req: Request) {
       razorpayOrderId = rzOrder.id;
     }
 
-    await prisma.order.create({
-      data: {
-        id: orderId,
-        customerName: body.customerName,
-        email: body.email,
-        phone: body.phone,
-        address: body.address,
-        city: body.city,
-        pin: body.pin,
-        state: body.state,
-        shippingMethod: body.shippingMethod,
-        shippingFee,
-        subtotal,
-        discount,
-        couponCode: body.couponCode || null,
-        total,
-        paymentMethod: body.paymentMethod,
-        paymentStatus: demoMode ? "Paid" : "Pending",
-        status: demoMode ? "Paid" : "Pending",
-        razorpayOrderId: razorpayOrderId || null,
-        items: {
-          create: body.items.map((i) => ({
-            productId: i.productId,
-            name: i.name,
-            variant: i.variant,
-            size: i.size,
-            unitPrice: i.unitPrice,
-            quantity: i.quantity,
-            lineTotal: i.unitPrice * i.quantity,
-          })),
+    await prisma.$transaction(async (tx) => {
+      for (const item of body.items) {
+        if (!item.productId) continue;
+        const variants = await tx.productVariant.findMany({ where: { productId: item.productId } });
+        const variant =
+          variants.find((row) => item.variantId && row.id === item.variantId) ||
+          variants.find((row) => row.name === item.variant);
+        if (!variant) throw new Error(`${item.name} is no longer available`);
+        if (variant.price !== item.unitPrice) {
+          throw new Error(`The price for ${item.name} (${variant.name}) changed. Refresh and try again.`);
+        }
+        if (variant.stock < item.quantity) {
+          throw new Error(`Only ${variant.stock} left for ${item.name} (${variant.name})`);
+        }
+        await tx.productVariant.update({
+          where: { id: variant.id },
+          data: { stock: { decrement: item.quantity } },
+        });
+        const left = await tx.productVariant.aggregate({
+          where: { productId: item.productId },
+          _sum: { stock: true },
+        });
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: left._sum.stock ?? 0 },
+        });
+      }
+
+      await tx.order.create({
+        data: {
+          id: orderId,
+          customerName: body.customerName,
+          email: body.email,
+          phone: body.phone,
+          address: body.address,
+          city: body.city,
+          pin: body.pin,
+          state: body.state,
+          shippingMethod: body.shippingMethod,
+          shippingFee,
+          subtotal,
+          discount,
+          couponCode: body.couponCode || null,
+          total,
+          paymentMethod: body.paymentMethod,
+          paymentStatus: demoMode ? "Paid" : "Pending",
+          status: demoMode ? "Paid" : "Pending",
+          razorpayOrderId: razorpayOrderId || null,
+          items: {
+            create: body.items.map((i) => ({
+              productId: i.productId,
+              name: i.name,
+              variant: i.variant,
+              size: i.size,
+              unitPrice: i.unitPrice,
+              quantity: i.quantity,
+              lineTotal: i.unitPrice * i.quantity,
+            })),
+          },
         },
-      },
+      });
     });
 
     return NextResponse.json({
