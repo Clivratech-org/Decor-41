@@ -172,7 +172,7 @@ export async function PUT(req: Request) {
   const stock = body.stock !== undefined ? Math.max(0, Math.round(Number(body.stock))) : existing.stock;
   const variants = normalizeVariants(
     body.variants ?? existing.variants.map((v) => ({ id: v.id, name: v.name, price: v.price })),
-    existing.variants[0]?.price ?? Number(body.price) || 0,
+    (existing.variants[0]?.price ?? Number(body.price)) || 0,
   );
   const name = body.name?.trim() || existing.name;
   const categoryId = body.categoryId || existing.categoryId;
