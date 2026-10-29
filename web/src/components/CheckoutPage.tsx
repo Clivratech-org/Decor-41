@@ -137,7 +137,7 @@ export function CheckoutPageClient({
         description: `Order ${data.orderId}`,
         order_id: data.razorpayOrderId,
         prefill: { name: payload.customerName, email: payload.email, contact: payload.phone },
-        theme: { color: "#c6ff3d" },
+        theme: { color: "#8B5E3C" },
         handler: async (response: {
           razorpay_order_id: string;
           razorpay_payment_id: string;

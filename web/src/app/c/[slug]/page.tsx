@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
+import { SafeImage } from "@/components/SafeImage";
 import { getCategories, getProducts } from "@/lib/products";
 import { getSettings } from "@/lib/settings";
 
@@ -30,9 +31,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           <Link href="/">Home</Link> / {c.name}
         </div>
         <div className="pgh">
-          {c.imageUrl ? (
-            <img src={c.imageUrl} alt="" style={{ width: 88, height: 88, objectFit: "cover", borderRadius: 16 }} />
-          ) : null}
+          <SafeImage src={c.imageUrl} alt="" style={{ width: 88, height: 88, objectFit: "cover", borderRadius: 16 }} />
           <div>
             <h1>{c.name}</h1>
             <p className="mut">
@@ -47,9 +46,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
             {children.map((child) => (
               <Link key={child.id} className="cat" href={`/c/${child.slug}`}>
                 <div className="art">
-                  {child.imageUrl ? (
-                    <img src={child.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : null}
+                  <SafeImage src={child.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
                 <span>
                   {child.name}

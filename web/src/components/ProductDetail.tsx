@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductArt } from "@/lib/art";
@@ -37,6 +37,7 @@ export function ProductDetail({
   const [i, setI] = useState(0);
   const [q, setQ] = useState(1);
   const [tab, setTab] = useState(0);
+  const [photoOk, setPhotoOk] = useState(false);
   const { addItem, showToast } = useCart();
   const router = useRouter();
   const variant = product.variants[v];
@@ -45,6 +46,25 @@ export function ProductDetail({
   const mrp = mrpFrom(product.variants[0]?.price || price);
   const photos = product.images || [];
   const photo = photos[i] || photos[0];
+
+  useEffect(() => {
+    if (!photo) {
+      setPhotoOk(false);
+      return;
+    }
+    let alive = true;
+    const img = new Image();
+    img.onload = () => {
+      if (alive) setPhotoOk(true);
+    };
+    img.onerror = () => {
+      if (alive) setPhotoOk(false);
+    };
+    img.src = photo;
+    return () => {
+      alive = false;
+    };
+  }, [photo]);
 
   function add(buy?: boolean) {
     if (!variant || stock < 1) return;
@@ -78,29 +98,35 @@ export function ProductDetail({
           <div className="gal">
             <div className="main">
               <span className="tag">{Math.round((1 - price / mrp) * 100)}% off</span>
-              {photo ? (
+              {photo && photoOk ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={photo} alt={`${product.name} photo ${Math.min(i, photos.length - 1) + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img
+                  src={photo}
+                  alt={`${product.name} photo ${Math.min(i, photos.length - 1) + 1}`}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
               ) : (
                 <ProductArt artKey={product.artKey} color={variant.color} variantIndex={v} view={i} label={product.name} />
               )}
-              {photos.length > 1 ? <span className="photo-count">{Math.min(i, photos.length - 1) + 1} / {photos.length}</span> : null}
+              {photos.length > 1 && photoOk ? (
+                <span className="photo-count">
+                  {Math.min(i, photos.length - 1) + 1} / {photos.length}
+                </span>
+              ) : null}
             </div>
             <div className="thumbs">
-              {photos.length > 1
+              {photos.length > 1 && photoOk
                 ? photos.map((url, j) => (
                     <button key={url} className={j === i ? "on" : ""} aria-label={`Photo ${j + 1}`} onClick={() => setI(j)} type="button">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={url} alt="" />
                     </button>
                   ))
-                : photos.length === 0
-                  ? [0, 1, 2].map((j) => (
-                      <button key={j} className={j === i ? "on" : ""} aria-label={`View ${j + 1}`} onClick={() => setI(j)} type="button">
-                        <ProductArt artKey={product.artKey} color={variant.color} variantIndex={v} view={j} label={product.name} />
-                      </button>
-                    ))
-                  : null}
+                : [0, 1, 2].map((j) => (
+                    <button key={j} className={j === i ? "on" : ""} aria-label={`View ${j + 1}`} onClick={() => setI(j)} type="button">
+                      <ProductArt artKey={product.artKey} color={variant.color} variantIndex={v} view={j} label={product.name} />
+                    </button>
+                  ))}
             </div>
           </div>
           <div>

@@ -67,8 +67,8 @@ export function CartPageClient({
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <circle cx="56" cy="92" r="5" fill="#3dd6ff" />
-            <circle cx="84" cy="92" r="5" fill="#3dd6ff" />
+            <circle cx="56" cy="92" r="5" fill="#8B5E3C" />
+            <circle cx="84" cy="92" r="5" fill="#8B5E3C" />
           </svg>
           <h1 style={{ fontSize: 38 }}>Your cart is empty</h1>
           <p className="mut">Add a laser-cut piece, poster or car accessory to get started.</p>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ProductArt } from "@/lib/art";
 import { rupees } from "@/lib/money";
 import type { ProductCard as P } from "@/lib/products";
@@ -12,7 +13,27 @@ function stars(r: number) {
 
 export function ProductCard({ product }: { product: P }) {
   const { addItem, showToast } = useCart();
-  const color = product.variants[0]?.color || "#c6ff3d";
+  const [imgOk, setImgOk] = useState(false);
+  const color = product.variants[0]?.color || "#8B5E3C";
+
+  useEffect(() => {
+    if (!product.imageUrl) {
+      setImgOk(false);
+      return;
+    }
+    let alive = true;
+    const img = new Image();
+    img.onload = () => {
+      if (alive) setImgOk(true);
+    };
+    img.onerror = () => {
+      if (alive) setImgOk(false);
+    };
+    img.src = product.imageUrl;
+    return () => {
+      alive = false;
+    };
+  }, [product.imageUrl]);
 
   function quickAdd(e: React.MouseEvent) {
     e.preventDefault();
@@ -43,7 +64,7 @@ export function ProductCard({ product }: { product: P }) {
         {product.stock > 0 ? (product.categorySlug === "laser" ? "Made to order" : "In stock") : "Out of stock"}
       </span>
       <div className="art">
-        {product.imageUrl ? (
+        {product.imageUrl && imgOk ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={product.imageUrl} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (

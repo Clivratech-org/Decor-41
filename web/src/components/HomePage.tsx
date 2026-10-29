@@ -4,20 +4,51 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
-import { ProductArt, laserArtSvg, productArtSvg } from "@/lib/art";
-import { rupees } from "@/lib/money";
+import { ProductArt, laserArtSvg } from "@/lib/art";
 import type { ProductCard as P } from "@/lib/products";
 import type { ShippingSettings } from "@/lib/settings";
 import { useCart } from "@/context/CartContext";
 
-const HERO_SLIDES = [
-  { id: 1, v: 0, view: 0 },
-  { id: 3, v: 0, view: 2 },
-  { id: 5, v: 1, view: 1 },
-  { id: 6, v: 1, view: 2 },
-  { id: 9, v: 2, view: 0 },
-  { id: 7, v: 1, view: 1 },
-];
+function CollectThumb({
+  src,
+  artKey,
+  color,
+  view,
+  label,
+}: {
+  src: string | null;
+  artKey: number;
+  color: string;
+  view: number;
+  label: string;
+}) {
+  const [ok, setOk] = useState(false);
+  useEffect(() => {
+    if (!src) {
+      setOk(false);
+      return;
+    }
+    let alive = true;
+    const img = new Image();
+    img.onload = () => {
+      if (alive) setOk(true);
+    };
+    img.onerror = () => {
+      if (alive) setOk(false);
+    };
+    img.src = src;
+    return () => {
+      alive = false;
+    };
+  }, [src]);
+  if (!src || !ok) {
+    return <ProductArt artKey={artKey} color={color} view={view} label={label} />;
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt="" />
+  );
+}
 
 export function HomePage({
   categories,
@@ -31,19 +62,13 @@ export function HomePage({
   coupons: { code: string; discountPercent: number }[];
 }) {
   const { showToast } = useCart();
-  const [hi, setHi] = useState(0);
   const [lead, setLead] = useState({ name: "", contact: "", interest: "", notes: "" });
   const [sending, setSending] = useState(false);
-  const byId = Object.fromEntries(products.map((p) => [p.id, p]));
   const autoCat = products.filter((p) => ["spoiler", "stand", "car"].includes(p.categorySlug));
+  const firstShop = categories[0]?.slug || "laser";
 
   useEffect(() => {
-    const t = setInterval(() => setHi((h) => (h + 1) % HERO_SLIDES.length), 4000);
-    return () => clearInterval(t);
-  }, []);
-
-  useEffect(() => {
-    const selector = ".cat,.card,.steps>div,.tm,.feat,.nl,.k2,h2,.sh,.panel,.fgrid li,.strip";
+    const selector = ".collect,.card,.steps>div,.tm,.feat,.nl,.k2,h2,.sh,.panel,.fgrid li,.strip";
     const io = new IntersectionObserver(
       (es) =>
         es.forEach((e) => {
@@ -68,7 +93,6 @@ export function HomePage({
       }
     });
 
-    // Reveal anything already in view (Strict Mode remount / fast scroll)
     requestAnimationFrame(() => {
       document.querySelectorAll(`${selector}.rv:not(.in)`).forEach((el) => {
         const rect = el.getBoundingClientRect();
@@ -89,136 +113,69 @@ export function HomePage({
 
   return (
     <>
-      <div className="w">
-        <section className="hero">
-          <div>
-            <span className="chip">New season · Laser cut · Auto style</span>
-            <h1>
-              Décor that <span>cuts</span> through.
-            </h1>
-            <p className="mut" style={{ fontSize: 18, maxWidth: 480 }}>
-              Laser-cut art, posters, wallpapers, faux greens and car accessories — made to stand out on your wall,
-              desk and driveway.
-            </p>
-            <div className="hero-cta">
-              <Link className="btn" href="/c/laser">
-                Shop now
-              </Link>
-              <Link className="btn g" href="/c/spoiler">
-                Auto zone
-              </Link>
-            </div>
-            <div className="mini">
-              <div>
-                <b>2,000+</b>happy customers
-              </div>
-              <div>
-                <b>3–5 days</b>custom cut time
-              </div>
-              <div>
-                <b>7 days</b>easy returns
-              </div>
-            </div>
+      <section className="hero-bleed">
+        <div className="hero-inner">
+          <div className="logo lg">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/decor41-logo.png" alt="Decor41" />
           </div>
-          <div className="hv">
-            <div
-              className="hbox"
-              onMouseEnter={() => {}}
-            >
-              <div className="pat" />
-              <div className="ring" />
-              <div className="frame">
-                {HERO_SLIDES.map((x, k) => {
-                  const p = byId[x.id];
-                  if (!p) return null;
-                  const v = p.variants[x.v] || p.variants[0];
-                  return (
-                    <Link key={k} className={`sl ${k === hi ? "on" : ""}`} href={`/p/${p.slug}`}>
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: productArtSvg(p.artKey, v.color, x.v, x.view, p.name),
-                        }}
-                      />
-                      <div className="cp">
-                        <div>
-                          <small className="mut">{p.categoryName}</small>
-                          <br />
-                          <b>{p.name}</b>
-                        </div>
-                        <span className="pr">{rupees(v.price)}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-              <div className="dots">
-                {HERO_SLIDES.map((_, k) => (
-                  <button
-                    key={k}
-                    className={k === hi ? "on" : ""}
-                    aria-label={`Show slide ${k + 1}`}
-                    onClick={() => setHi(k)}
-                    type="button"
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="fl" style={{ top: "6%", left: "-4%" }}>
-              ⭐ 4.9 · 2,000+ reviews
-            </div>
-            <div className="fl" style={{ top: "44%", right: "-4%", animationDelay: "-1.5s" }}>
-              🔒 Secure UPI checkout
-            </div>
-            <div className="fl" style={{ bottom: "6%", left: "4%", animationDelay: "-3s" }}>
-              🚚 Free shipping ₹{settings.freeShippingThreshold}+
-            </div>
+          <h1>Style it. Cut it. Drive it.</h1>
+          <p className="mut">Laser-cut décor, posters and auto style — made to stand out at home and on the road.</p>
+          <div className="hero-cta">
+            <Link className="btn" href={`/c/${firstShop}`}>
+              Shop now
+            </Link>
+            <Link className="btn g" href="/custom">
+              Custom order
+            </Link>
           </div>
-        </section>
-      </div>
-
-      <div className="strip">
-        <div>
-          {("★ Free shipping over ₹" + settings.freeShippingThreshold + " &nbsp; ★ Custom laser cutting &nbsp; ★ Secure UPI & card payments &nbsp; ★ 7-day returns &nbsp; ").repeat(6)}
         </div>
-      </div>
+      </section>
 
-      <div className="w">
+      <div className="w collections">
         <div className="sh">
-          <h2>Shop by category</h2>
+          <h2>Shop collections</h2>
         </div>
-        <div className="g4">
+        <div className="collect-grid">
           {categories.map((c) => {
-            const sample =
-              products.find((p) => p.categorySlug === c.slug) || products[0];
-            const color = sample?.variants[0]?.color || "#c6ff3d";
+            const sample = products.find((p) => p.categorySlug === c.slug) || products[0];
+            const color = sample?.variants[0]?.color || "#8B5E3C";
+            const thumb = c.imageUrl || sample?.imageUrl || null;
             return (
-              <Link key={c.slug} className="cat" href={`/c/${c.slug}`}>
+              <Link key={c.slug} className="collect" href={`/c/${c.slug}`}>
                 <div className="art">
-                  {c.imageUrl ? (
-                    <img src={c.imageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
-                    sample && (
-                      <ProductArt
-                        artKey={sample.artKey}
-                        color={color}
-                        view={c.slug.length % 3 === 0 ? 2 : 0}
-                        label={c.name}
-                      />
-                    )
-                  )}
+                  <CollectThumb
+                    src={thumb}
+                    artKey={sample?.artKey ?? 1}
+                    color={color}
+                    view={c.slug.length % 3 === 0 ? 2 : 0}
+                    label={c.name}
+                  />
                 </div>
-                <span>
+                <b>
                   {c.name}
-                  <small>{c.description}</small>
-                </span>
+                  {c.description ? <small>{c.description}</small> : null}
+                </b>
               </Link>
             );
           })}
         </div>
+      </div>
 
+      <div className="strip">
+        <div>
+          {(
+            "★ Free shipping over ₹" +
+            settings.freeShippingThreshold +
+            " &nbsp; ★ Dispatch in 5–9 working days &nbsp; ★ Secure UPI & card payments &nbsp; ★ 7-day returns &nbsp; "
+          ).repeat(6)}
+        </div>
+      </div>
+
+      <div className="w">
         <div className="sh">
           <h2>Bestsellers</h2>
-          <Link href="/c/laser">View all →</Link>
+          <Link href={`/c/${firstShop}`}>View all →</Link>
         </div>
         <div className="g4">
           {products.slice(0, 8).map((p) => (
@@ -229,7 +186,7 @@ export function HomePage({
         <h2>Made to order</h2>
         <div className="feat">
           <div className="vis">
-            <div className="pat" style={{ opacity: 0.14 }} />
+            <div className="pat" />
             <span dangerouslySetInnerHTML={{ __html: laserArtSvg() }} />
           </div>
           <div className="tx">
@@ -313,7 +270,7 @@ export function HomePage({
         </div>
 
         <div className="nl">
-          <h2 style={{ margin: "0 0 10px" }}>
+          <h2 style={{ margin: "0 0 10px", color: "#FAF6F0" }}>
             {coupons[0] ? `Get ${coupons[0].discountPercent}% off with ${coupons[0].code}` : "Tell us what you need"}
           </h2>
           <p style={{ margin: "0 0 18px" }}>
@@ -367,7 +324,7 @@ export function HomePage({
               value={lead.notes}
               onChange={(e) => setLead({ ...lead, notes: e.target.value })}
             />
-            <button className="btn" style={{ background: "#0b0f1a", color: "#fff" }} type="submit" disabled={sending}>
+            <button className="btn" type="submit" disabled={sending}>
               {sending ? "Sending…" : "Send request"}
             </button>
           </form>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans, Sora } from "next/font/google";
+import { DM_Sans, Fraunces } from "next/font/google";
 import { CartProvider } from "@/context/CartContext";
 import { SiteChrome } from "@/components/SiteChrome";
 import { getCategories } from "@/lib/products";
@@ -12,10 +12,10 @@ const dm = DM_Sans({
   variable: "--font-dm",
 });
 
-const sora = Sora({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  weight: ["600", "700", "800"],
-  variable: "--font-sora",
+  weight: ["500", "600", "700"],
+  variable: "--font-fraunces",
 });
 
 export const metadata: Metadata = {
@@ -32,15 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const [categories, settings] = await Promise.all([getCategories(), getSettings()]);
 
   return (
-    <html lang="en" className={`${dm.variable} ${sora.variable}`} data-theme="dark" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{document.documentElement.dataset.theme=localStorage.getItem("d41theme")||"dark"}catch(e){document.documentElement.dataset.theme="dark"}`,
-          }}
-        />
-        <style>{`:root{--hd:var(--font-sora),system-ui,sans-serif}body{font-family:var(--font-dm),system-ui,sans-serif}`}</style>
-      </head>
+    <html lang="en" className={`${dm.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <body>
         <CartProvider>
           <SiteChrome

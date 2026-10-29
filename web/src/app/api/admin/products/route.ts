@@ -45,7 +45,7 @@ function normalizeVariants(raw: unknown, fallbackPrice: number, fallbackStock = 
   return [{ name: "Standard", price: Math.max(0, Math.round(fallbackPrice)), stock: Math.max(0, Math.round(fallbackStock)) }];
 }
 
-const COLORS = ["#c58b55", "#5b6277", "#f0b73a", "#3dd6ff", "#c6ff3d", "#ff5d6c"];
+const COLORS = ["#8B5E3C", "#5C4030", "#C4A484", "#6B5748", "#A67C52", "#3D2B1F"];
 
 function mapProduct(p: {
   id: number;

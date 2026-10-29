@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 export function Confetti() {
   useEffect(() => {
-    const cols = ["#c6ff3d", "#3dd6ff", "#ff5a6e", "#ffc93d", "#fff"];
+    const cols = ["#8B5E3C", "#C4A484", "#A33B2B", "#5C4030", "#FAF6F0"];
     const nodes: HTMLElement[] = [];
     for (let i = 0; i < 70; i++) {
       const e = document.createElement("i");
