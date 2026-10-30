@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { useCart } from "@/context/CartContext";
+import { CursorGlow } from "@/components/CursorGlow";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 type Cat = { slug: string; name: string };
 
@@ -104,6 +106,8 @@ export function SiteChrome({
       </header>
       <div id="pg" style={{ width: `${progress}%` }} />
       <main id="app">{children}</main>
+      <ScrollReveal />
+      <CursorGlow />
       {!isCheckout && (
         <a
           className="wa"

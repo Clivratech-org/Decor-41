@@ -67,53 +67,11 @@ export function HomePage({
   const autoCat = products.filter((p) => ["spoiler", "stand", "car"].includes(p.categorySlug));
   const firstShop = categories[0]?.slug || "laser";
 
-  useEffect(() => {
-    const selector = ".collect,.card,.steps>div,.tm,.feat,.nl,.k2,h2,.sh,.panel,.fgrid li,.strip";
-    const io = new IntersectionObserver(
-      (es) =>
-        es.forEach((e) => {
-          if (!e.isIntersecting) return;
-          e.target.classList.add("in");
-          const n = e.target.querySelector("[data-n]") as HTMLElement | null;
-          if (n && !n.dataset.counted) {
-            n.dataset.counted = "1";
-            countUp(n);
-          }
-          io.unobserve(e.target);
-        }),
-      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" },
-    );
-
-    document.querySelectorAll(selector).forEach((el, i) => {
-      const node = el as HTMLElement;
-      if (!node.classList.contains("in")) {
-        node.classList.add("rv");
-        node.style.animationDelay = `${(i % 4) * 80}ms`;
-        io.observe(node);
-      }
-    });
-
-    requestAnimationFrame(() => {
-      document.querySelectorAll(`${selector}.rv:not(.in)`).forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        if (rect.top < window.innerHeight && rect.bottom > 0) {
-          el.classList.add("in");
-          const n = el.querySelector("[data-n]") as HTMLElement | null;
-          if (n && !n.dataset.counted) {
-            n.dataset.counted = "1";
-            countUp(n);
-          }
-          io.unobserve(el);
-        }
-      });
-    });
-
-    return () => io.disconnect();
-  }, [products]);
-
   return (
     <>
       <section className="hero-bleed">
+        <div className="hero-photo" aria-hidden />
+        <div className="hero-veil" aria-hidden />
         <div className="hero-inner">
           <div className="logo lg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -333,17 +291,4 @@ export function HomePage({
       <Footer categories={categories} settings={settings} />
     </>
   );
-}
-
-function countUp(n: HTMLElement) {
-  const T = +n.dataset.n!;
-  const d = n.dataset.n!.includes(".") ? 1 : 0;
-  const t0 = performance.now();
-  (function f(t: number) {
-    const p = Math.min((t - t0) / 1500, 1);
-    n.textContent = (T * (1 - Math.pow(1 - p, 3)))
-      .toFixed(d)
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    if (p < 1) requestAnimationFrame(f);
-  })(t0);
 }
