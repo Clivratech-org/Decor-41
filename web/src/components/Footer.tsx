@@ -16,7 +16,7 @@ export function Footer({
           <div>
             <Link className="logo" href="/" aria-label="Decor 41 home">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/brand/decor41-logo.png" alt="Decor41" />
+              <img src="/brand/decor41-logo-clear.png" alt="Decor41" />
             </Link>
             <p>
               Laser-cut décor, posters, wallpapers, faux greens and car accessories — designed and made in

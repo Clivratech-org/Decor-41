@@ -117,7 +117,7 @@ export function HomePage({
         <div className="hero-inner">
           <div className="logo lg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/decor41-logo.png" alt="Decor41" />
+            <img src="/brand/decor41-logo-clear.png" alt="Decor41" />
           </div>
           <h1>Style it. Cut it. Drive it.</h1>
           <p className="mut">Laser-cut décor, posters and auto style — made to stand out at home and on the road.</p>

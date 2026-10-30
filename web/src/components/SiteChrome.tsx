@@ -66,7 +66,7 @@ export function SiteChrome({
         <div className="w">
           <Link className="logo" href="/" aria-label="Decor 41 home">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/decor41-logo.png" alt="Decor41" />
+            <img src="/brand/decor41-logo-clear.png" alt="Decor41" />
           </Link>
           <button
             className="tg menu"
