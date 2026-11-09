@@ -9,6 +9,7 @@ export async function POST(req: Request) {
     const contact = String(fd.get("contact") || "").trim();
     const interest = String(fd.get("interest") || "").trim();
     const notes = String(fd.get("notes") || "").trim();
+    const category = String(fd.get("category") || "").trim();
     const file = fd.get("file");
 
     if (!name || !contact || !interest) {
@@ -23,13 +24,14 @@ export async function POST(req: Request) {
 
     const saved = await uploadObject(file, "custom");
     const fileUrl = saved.url;
+    const noteParts = [category ? `Category: ${category}` : "", notes].filter(Boolean).join("\n");
 
     await prisma.lead.create({
       data: {
         name,
         contact,
-        interest,
-        notes: notes || null,
+        interest: category ? `[${category}] ${interest}` : interest,
+        notes: noteParts || null,
         fileUrl,
         kind: "custom",
         status: "New",

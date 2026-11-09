@@ -6,6 +6,8 @@ import { FormEvent, useEffect, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { CursorGlow } from "@/components/CursorGlow";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { Icon } from "@/components/Icons";
+import { signOut, useSession } from "next-auth/react";
 
 type Cat = { slug: string; name: string };
 
@@ -21,14 +23,17 @@ export function SiteChrome({
   const pathname = usePathname();
   const router = useRouter();
   const { count } = useCart();
+  const { data: session } = useSession();
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
   const [menu, setMenu] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const isCheckout = pathname.startsWith("/checkout") || pathname.startsWith("/done");
   const isAdmin = pathname.startsWith("/admin");
 
   useEffect(() => {
     setMenu(false);
+    setSearchOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -59,7 +64,10 @@ export function SiteChrome({
   function onSearch(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const q = new FormData(e.currentTarget).get("q")?.toString().trim();
-    if (q) router.push(`/s?q=${encodeURIComponent(q)}`);
+    if (q) {
+      router.push(`/s?q=${encodeURIComponent(q)}`);
+      setSearchOpen(false);
+    }
   }
 
   return (
@@ -77,7 +85,7 @@ export function SiteChrome({
             onClick={() => setMenu((open) => !open)}
             type="button"
           >
-            {menu ? "✕" : "☰"}
+            {menu ? <Icon.Close /> : <Icon.Menu />}
           </button>
           {!isCheckout && (
             <nav id="nav" className={menu ? "open" : ""}>
@@ -92,17 +100,57 @@ export function SiteChrome({
           )}
           {isCheckout && <div className="sf">Secure checkout</div>}
           {!isCheckout && (
-            <form className="srch" onSubmit={onSearch}>
-              <span>🔍</span>
-              <input name="q" placeholder="Search décor, cars…" aria-label="Search" />
-            </form>
+            <>
+              <form className="srch srch-desk" onSubmit={onSearch}>
+                <Icon.Search />
+                <input name="q" placeholder="Search décor, cars…" aria-label="Search" />
+              </form>
+              <button
+                type="button"
+                className={`tg srch-mob-btn${searchOpen ? " on" : ""}`}
+                aria-label="Search"
+                aria-expanded={searchOpen}
+                onClick={() => setSearchOpen((v) => !v)}
+              >
+                {searchOpen ? <Icon.Close /> : <Icon.Search />}
+              </button>
+            </>
           )}
+          {!isCheckout &&
+            (session?.user ? (
+              <button
+                type="button"
+                className="tg account-btn"
+                title={session.user.email || "Account"}
+                aria-label="Sign out"
+                onClick={() => signOut({ callbackUrl: "/" })}
+              >
+                {session.user.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={session.user.image} alt="" className="avatar-sm" />
+                ) : (
+                  <Icon.User />
+                )}
+              </button>
+            ) : (
+              <Link className="tg account-btn" href="/login" aria-label="Sign in with Google">
+                <Icon.Login />
+              </Link>
+            ))}
           <Link className="btn" id="cb" href="/cart">
-            <span aria-hidden>🛒</span>
+            <Icon.Cart />
             <span className="cart-lbl">Cart</span>
             <span id="cc">{count}</span>
           </Link>
         </div>
+        {!isCheckout && searchOpen ? (
+          <div className="srch-drop w">
+            <form className="srch srch-drop-form" onSubmit={onSearch}>
+              <Icon.Search />
+              <input name="q" placeholder="Search décor, cars…" aria-label="Search" autoFocus />
+            </form>
+          </div>
+        ) : null}
       </header>
       <div id="pg" style={{ width: `${progress}%` }} />
       <main id="app">{children}</main>
@@ -117,7 +165,7 @@ export function SiteChrome({
           target="_blank"
           rel="noreferrer"
         >
-          💬
+          <Icon.WhatsApp size={22} />
         </a>
       )}
     </>

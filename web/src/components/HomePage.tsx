@@ -64,7 +64,6 @@ export function HomePage({
   const { showToast } = useCart();
   const [lead, setLead] = useState({ name: "", contact: "", interest: "", notes: "" });
   const [sending, setSending] = useState(false);
-  const autoCat = products.filter((p) => ["spoiler", "stand", "car"].includes(p.categorySlug));
   const firstShop = categories[0]?.slug || "laser";
 
   return (
@@ -164,30 +163,20 @@ export function HomePage({
           </div>
         </div>
 
-        <div className="sh">
-          <h2>Fresh for your ride</h2>
-          <Link href="/c/spoiler">Auto zone →</Link>
-        </div>
-        <div className="g4">
-          {autoCat.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-
         <h2>How it works</h2>
         <div className="steps">
           <div>
-            <div className="ic">✏️</div>
+            <div className="ic">1</div>
             <h3>Pick or upload</h3>
             <p className="mut">Choose a ready design or send your own.</p>
           </div>
           <div>
-            <div className="ic">⚡</div>
+            <div className="ic">2</div>
             <h3>We craft it</h3>
             <p className="mut">Cut, printed and quality-checked in-house.</p>
           </div>
           <div>
-            <div className="ic">📦</div>
+            <div className="ic">3</div>
             <h3>Delivered</h3>
             <p className="mut">Packed safely and tracked to your door.</p>
           </div>

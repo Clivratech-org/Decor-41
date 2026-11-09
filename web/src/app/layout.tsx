@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Fraunces } from "next/font/google";
 import { CartProvider } from "@/context/CartContext";
+import { SessionProvider } from "@/components/SessionProvider";
 import { SiteChrome } from "@/components/SiteChrome";
 import { getCategories } from "@/lib/products";
 import { getSettings } from "@/lib/settings";
@@ -34,14 +35,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={`${dm.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <body>
-        <CartProvider>
-          <SiteChrome
-            categories={categories.filter((c) => !c.parentId).map((c) => ({ slug: c.slug, name: c.name }))}
-            whatsapp={settings.whatsapp}
-          >
-            {children}
-          </SiteChrome>
-        </CartProvider>
+        <SessionProvider>
+          <CartProvider>
+            <SiteChrome
+              categories={categories.filter((c) => !c.parentId).map((c) => ({ slug: c.slug, name: c.name }))}
+              whatsapp={settings.whatsapp}
+            >
+              {children}
+            </SiteChrome>
+          </CartProvider>
+        </SessionProvider>
       </body>
     </html>
   );

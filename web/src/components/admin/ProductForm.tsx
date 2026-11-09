@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ProductPhotos } from "@/components/admin/ProductPhotos";
+import { ImageField } from "@/components/admin/ImageField";
 
 export type VariantDraft = {
   id?: string;
   name: string;
   price: number;
   stock: number;
+  imageUrl?: string;
 };
 
 export type ProductDraft = {
@@ -22,6 +24,7 @@ export type ProductDraft = {
   variants: VariantDraft[];
   images: string[];
   visible: boolean;
+  customOrderEnabled: boolean;
 };
 
 export function ProductForm({
@@ -57,6 +60,7 @@ export function ProductForm({
       name: variant.name.trim(),
       price: Math.max(0, Math.round(Number(variant.price) || 0)),
       stock: Math.max(0, Math.round(Number(variant.stock) || 0)),
+      imageUrl: variant.imageUrl?.trim() || "",
     }));
     if (!variants.length || variants.some((variant) => !variant.name)) {
       setError("Each variant needs a name");
@@ -67,7 +71,13 @@ export function ProductForm({
     const res = await fetch("/api/admin/products", {
       method: form.id ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, variants, images: form.images.slice(0, 3), imageUrl: form.images[0] || "" }),
+      body: JSON.stringify({
+        ...form,
+        variants,
+        images: form.images.slice(0, 3),
+        imageUrl: form.images[0] || "",
+        customOrderEnabled: form.customOrderEnabled,
+      }),
     });
     const data = await res.json();
     setBusy(false);
@@ -120,10 +130,10 @@ export function ProductForm({
         <label>Description</label>
         <textarea rows={5} value={form.description} onChange={(e) => set("description", e.target.value)} />
         <label>Variants</label>
-        <p className="hint">Each option has its own price and stock. Customers choose one on the product page.</p>
+        <p className="hint">Each option has its own price, stock and image. Customers choose one on the product page.</p>
         <div className="variant-list">
           {form.variants.map((variant, index) => (
-            <div className="variant-row" key={variant.id || index}>
+            <div className="variant-row variant-row-img" key={variant.id || index}>
               <label className="variant-field name">
                 <span>Option</span>
                 <input
@@ -161,6 +171,14 @@ export function ProductForm({
               >
                 Remove
               </button>
+              <div className="variant-image">
+                <ImageField
+                  label={`Image for ${variant.name || `option ${index + 1}`}`}
+                  folder="products"
+                  value={variant.imageUrl || ""}
+                  onChange={(imageUrl) => updateVariant(index, { imageUrl })}
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -170,7 +188,7 @@ export function ProductForm({
           onClick={() =>
             set("variants", [
               ...form.variants,
-              { name: "", price: form.variants[0]?.price || 0, stock: 0 },
+              { name: "", price: form.variants[0]?.price || 0, stock: 0, imageUrl: "" },
             ])
           }
         >
@@ -181,6 +199,15 @@ export function ProductForm({
           <input type="checkbox" checked={form.visible} onChange={(e) => set("visible", e.target.checked)} />
           Visible on the store
         </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={form.customOrderEnabled}
+            onChange={(e) => set("customOrderEnabled", e.target.checked)}
+          />
+          Show custom-order section on this product page
+        </label>
+        <p className="hint">Uses the category custom-order title and content when that category has custom orders enabled.</p>
         {error ? <p className="err">{error}</p> : null}
         <div className="actions">
           <button className="btn" type="button" disabled={busy} onClick={save}>

@@ -15,8 +15,14 @@ export type ProductCard = {
   images: string[];
   categorySlug: string;
   categoryName: string;
+  customOrderEnabled: boolean;
+  categoryCustomOrder?: {
+    enabled: boolean;
+    title: string;
+    body: string;
+  };
   fromPrice: number;
-  variants: { id: string; name: string; price: number; stock: number; color: string }[];
+  variants: { id: string; name: string; price: number; stock: number; color: string; imageUrl: string | null }[];
   sizes: string[];
 };
 
@@ -94,11 +100,19 @@ function mapProduct(p: {
   imageUrl: string | null;
   images: string;
   sizes: string;
-  category: { slug: string; name: string };
-  variants: { id: string; name: string; price: number; stock: number; color: string }[];
+  customOrderEnabled?: boolean;
+  category: {
+    slug: string;
+    name: string;
+    customOrderEnabled?: boolean;
+    customOrderTitle?: string;
+    customOrderBody?: string;
+  };
+  variants: { id: string; name: string; price: number; stock: number; color: string; imageUrl?: string | null }[];
 }): ProductCard {
   const prices = p.variants.map((v) => v.price);
   const images = productPhotoList(p.images, p.imageUrl);
+  const variantStock = p.variants.reduce((sum, v) => sum + v.stock, 0);
   return {
     id: p.id,
     slug: p.slug,
@@ -106,14 +120,27 @@ function mapProduct(p: {
     tagline: p.tagline,
     rating: p.rating,
     reviewCount: p.reviewCount,
-    stock: p.variants.reduce((sum, v) => sum + v.stock, 0),
+    stock: variantStock,
     artKey: p.artKey,
     imageUrl: images[0] || null,
     images,
     categorySlug: p.category.slug,
     categoryName: p.category.name,
+    customOrderEnabled: !!p.customOrderEnabled,
+    categoryCustomOrder: {
+      enabled: !!p.category.customOrderEnabled,
+      title: p.category.customOrderTitle || "Made to order",
+      body: p.category.customOrderBody || "",
+    },
     fromPrice: prices.length ? Math.min(...prices) : 0,
-    variants: p.variants.map((v) => ({ id: v.id, name: v.name, price: v.price, stock: v.stock, color: v.color })),
+    variants: p.variants.map((v) => ({
+      id: v.id,
+      name: v.name,
+      price: v.price,
+      stock: v.stock,
+      color: v.color,
+      imageUrl: normalizeMediaUrl(v.imageUrl || null),
+    })),
     sizes: JSON.parse(p.sizes) as string[],
   };
 }

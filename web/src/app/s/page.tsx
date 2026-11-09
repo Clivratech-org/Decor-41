@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
-import { ProductCard } from "@/components/ProductCard";
+import { ProductFilters } from "@/components/ProductFilters";
 import { getCategories, getProducts } from "@/lib/products";
 import { getSettings } from "@/lib/settings";
 
@@ -25,11 +25,7 @@ export default async function SearchPage({
           <h1>Results for “{q}”</h1>
         </div>
         {products.length ? (
-          <div className="g4">
-            {products.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <ProductFilters products={products} />
         ) : (
           <div className="empty">
             <h3>No matches</h3>

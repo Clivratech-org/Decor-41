@@ -21,6 +21,9 @@ export async function GET() {
       sortOrder: c.sortOrder,
       imageUrl: normalizeMediaUrl(c.imageUrl),
       parentId: c.parentId,
+      customOrderEnabled: c.customOrderEnabled,
+      customOrderTitle: c.customOrderTitle,
+      customOrderBody: c.customOrderBody,
       productCount: c._count.products,
       childCount: c._count.children,
     })),
@@ -37,6 +40,9 @@ export async function POST(req: Request) {
     sortOrder?: number;
     imageUrl?: string;
     parentId?: string | null;
+    customOrderEnabled?: boolean;
+    customOrderTitle?: string;
+    customOrderBody?: string;
   };
   const name = body.name?.trim();
   if (!name) return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -59,6 +65,9 @@ export async function POST(req: Request) {
       sortOrder: Number(body.sortOrder) || 0,
       imageUrl: body.imageUrl?.trim() || null,
       parentId,
+      customOrderEnabled: !!body.customOrderEnabled,
+      customOrderTitle: body.customOrderTitle?.trim() || "Made to order",
+      customOrderBody: body.customOrderBody?.trim() || "",
     },
   });
   return NextResponse.json({ ok: true, id: category.id });
@@ -75,6 +84,9 @@ export async function PUT(req: Request) {
     sortOrder?: number;
     imageUrl?: string | null;
     parentId?: string | null;
+    customOrderEnabled?: boolean;
+    customOrderTitle?: string;
+    customOrderBody?: string;
   };
   if (!body.id) return NextResponse.json({ error: "id required" }, { status: 400 });
   const existing = await prisma.category.findUnique({
@@ -105,6 +117,14 @@ export async function PUT(req: Request) {
       sortOrder: body.sortOrder !== undefined ? Number(body.sortOrder) || 0 : existing.sortOrder,
       imageUrl: body.imageUrl !== undefined ? body.imageUrl?.trim() || null : existing.imageUrl,
       parentId,
+      customOrderEnabled:
+        body.customOrderEnabled !== undefined ? !!body.customOrderEnabled : existing.customOrderEnabled,
+      customOrderTitle:
+        body.customOrderTitle !== undefined
+          ? body.customOrderTitle.trim() || "Made to order"
+          : existing.customOrderTitle,
+      customOrderBody:
+        body.customOrderBody !== undefined ? body.customOrderBody.trim() : existing.customOrderBody,
     },
   });
   return NextResponse.json({ ok: true });

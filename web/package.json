@@ -16,11 +16,14 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.11.3",
     "@aws-sdk/client-s3": "^3.1154.0",
     "@prisma/client": "^6.19.0",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.12",
+    "lucide-react": "^1.67.0",
     "next": "16.4.1",
+    "next-auth": "^5.0.0-beta.32",
     "razorpay": "^2.9.8",
     "react": "19.3.0",
     "react-dom": "19.3.0",

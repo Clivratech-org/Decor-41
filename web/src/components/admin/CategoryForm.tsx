@@ -12,6 +12,9 @@ export type CategoryDraft = {
   sortOrder: number;
   imageUrl: string;
   parentId: string;
+  customOrderEnabled: boolean;
+  customOrderTitle: string;
+  customOrderBody: string;
 };
 
 export function CategoryForm({
@@ -71,6 +74,7 @@ export function CategoryForm({
           <div className="preview lg">{form.imageUrl ? <img src={form.imageUrl} alt="" /> : <span>Category image</span>}</div>
           <b>{form.name || "Category name"}</b>
           <span>{form.description || "Short description"}</span>
+          {form.customOrderEnabled ? <span>Custom orders enabled</span> : null}
         </div>
       </div>
       <div className="bx form-grid">
@@ -102,6 +106,32 @@ export function CategoryForm({
           value={form.imageUrl}
           onChange={(imageUrl) => setForm((prev) => ({ ...prev, imageUrl }))}
         />
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={form.customOrderEnabled}
+            onChange={(e) => setForm({ ...form, customOrderEnabled: e.target.checked })}
+          />
+          Enable custom orders for this category
+        </label>
+        <p className="hint">When on, the shop shows a custom-order section and this category appears on the custom form.</p>
+        {form.customOrderEnabled ? (
+          <>
+            <label>Custom section title</label>
+            <input
+              value={form.customOrderTitle}
+              onChange={(e) => setForm({ ...form, customOrderTitle: e.target.value })}
+              placeholder="Made to order"
+            />
+            <label>Custom section content</label>
+            <textarea
+              rows={4}
+              value={form.customOrderBody}
+              onChange={(e) => setForm({ ...form, customOrderBody: e.target.value })}
+              placeholder="Tell customers what they can customise in this category…"
+            />
+          </>
+        ) : null}
         {error ? <p className="err">{error}</p> : null}
         <div className="actions">
           <button className="btn" type="button" disabled={busy} onClick={save}>

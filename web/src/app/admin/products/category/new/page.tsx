@@ -20,7 +20,16 @@ function NewCategory() {
   return (
     <CategoryForm
       parents={parents}
-      initial={{ name: "", description: "", sortOrder: 0, imageUrl: "", parentId }}
+      initial={{
+        name: "",
+        description: "",
+        sortOrder: 0,
+        imageUrl: "",
+        parentId,
+        customOrderEnabled: false,
+        customOrderTitle: "Made to order",
+        customOrderBody: "",
+      }}
     />
   );
 }

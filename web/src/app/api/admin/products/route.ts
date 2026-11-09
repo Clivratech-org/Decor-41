@@ -15,18 +15,19 @@ function parseVariantNames(raw: string) {
     .filter(Boolean);
 }
 
-type VariantInput = { id?: string; name: string; price: number; stock: number };
+type VariantInput = { id?: string; name: string; price: number; stock: number; imageUrl?: string | null };
 
 function normalizeVariants(raw: unknown, fallbackPrice: number, fallbackStock = 0): VariantInput[] {
   if (Array.isArray(raw)) {
     const rows = raw
       .map((item) => {
-        const row = item as { id?: string; name?: string; price?: number; stock?: number };
+        const row = item as { id?: string; name?: string; price?: number; stock?: number; imageUrl?: string | null };
         return {
           id: row.id,
           name: String(row.name || "").trim(),
           price: Math.max(0, Math.round(Number(row.price) || 0)),
           stock: Math.max(0, Math.round(Number(row.stock) || 0)),
+          imageUrl: row.imageUrl?.trim() || null,
         };
       })
       .filter((row) => row.name);
@@ -39,10 +40,18 @@ function normalizeVariants(raw: unknown, fallbackPrice: number, fallbackStock = 
         name,
         price: Math.max(0, Math.round(fallbackPrice)),
         stock: Math.max(0, Math.round(fallbackStock)),
+        imageUrl: null,
       }));
     }
   }
-  return [{ name: "Standard", price: Math.max(0, Math.round(fallbackPrice)), stock: Math.max(0, Math.round(fallbackStock)) }];
+  return [
+    {
+      name: "Standard",
+      price: Math.max(0, Math.round(fallbackPrice)),
+      stock: Math.max(0, Math.round(fallbackStock)),
+      imageUrl: null,
+    },
+  ];
 }
 
 const COLORS = ["#8B5E3C", "#5C4030", "#C4A484", "#6B5748", "#A67C52", "#3D2B1F"];
@@ -60,7 +69,8 @@ function mapProduct(p: {
   visible: boolean;
   artKey: number;
   category: { name: string };
-  variants: { id: string; name: string; price: number; stock: number }[];
+  customOrderEnabled?: boolean;
+  variants: { id: string; name: string; price: number; stock: number; imageUrl?: string | null }[];
 }) {
   const prices = p.variants.map((v) => v.price);
   const images = productPhotoList(p.images, p.imageUrl);
@@ -74,11 +84,18 @@ function mapProduct(p: {
     description: p.description,
     price: prices.length ? Math.min(...prices) : 0,
     stock: p.variants.reduce((sum, v) => sum + v.stock, 0),
-    variants: p.variants.map((v) => ({ id: v.id, name: v.name, price: v.price, stock: v.stock })),
+    variants: p.variants.map((v) => ({
+      id: v.id,
+      name: v.name,
+      price: v.price,
+      stock: v.stock,
+      imageUrl: v.imageUrl || null,
+    })),
     imageUrl: images[0] || null,
     images,
     visible: p.visible,
     artKey: p.artKey,
+    customOrderEnabled: !!p.customOrderEnabled,
   };
 }
 
@@ -114,6 +131,7 @@ export async function POST(req: Request) {
     imageUrl?: string;
     images?: unknown;
     visible?: boolean;
+    customOrderEnabled?: boolean;
   };
   const name = body.name?.trim() || "Untitled";
   const categoryId = body.categoryId;
@@ -142,6 +160,7 @@ export async function POST(req: Request) {
       sizes: DEFAULT_SIZES,
       stock,
       visible: body.visible !== false,
+      customOrderEnabled: !!body.customOrderEnabled,
       imageUrl: images[0] || null,
       images: JSON.stringify(images),
       artKey: id,
@@ -150,6 +169,7 @@ export async function POST(req: Request) {
           name: variant.name,
           price: variant.price,
           stock: variant.stock,
+          imageUrl: variant.imageUrl || null,
           color: COLORS[i % COLORS.length],
           sortOrder: i,
         })),
@@ -176,6 +196,7 @@ export async function PUT(req: Request) {
     imageUrl?: string;
     images?: unknown;
     visible?: boolean;
+    customOrderEnabled?: boolean;
   };
   const id = Number(body.id);
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
@@ -187,7 +208,14 @@ export async function PUT(req: Request) {
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const variants = normalizeVariants(
-    body.variants ?? existing.variants.map((v) => ({ id: v.id, name: v.name, price: v.price, stock: v.stock })),
+    body.variants ??
+      existing.variants.map((v) => ({
+        id: v.id,
+        name: v.name,
+        price: v.price,
+        stock: v.stock,
+        imageUrl: v.imageUrl,
+      })),
     (existing.variants[0]?.price ?? Number(body.price)) || 0,
     existing.stock,
   );
@@ -206,6 +234,8 @@ export async function PUT(req: Request) {
       description: body.description !== undefined ? body.description.trim() || existing.description : existing.description,
       stock,
       visible: body.visible !== undefined ? !!body.visible : existing.visible,
+      customOrderEnabled:
+        body.customOrderEnabled !== undefined ? !!body.customOrderEnabled : existing.customOrderEnabled,
       imageUrl: images[0] || null,
       images: JSON.stringify(images),
     },
@@ -220,7 +250,13 @@ export async function PUT(req: Request) {
       kept.add(prev.id);
       await prisma.productVariant.update({
         where: { id: prev.id },
-        data: { name: variant.name, price: variant.price, stock: variant.stock, sortOrder: i },
+        data: {
+          name: variant.name,
+          price: variant.price,
+          stock: variant.stock,
+          imageUrl: variant.imageUrl || null,
+          sortOrder: i,
+        },
       });
     } else {
       const created = await prisma.productVariant.create({
@@ -229,6 +265,7 @@ export async function PUT(req: Request) {
           name: variant.name,
           price: variant.price,
           stock: variant.stock,
+          imageUrl: variant.imageUrl || null,
           color: COLORS[i % COLORS.length],
           sortOrder: i,
         },

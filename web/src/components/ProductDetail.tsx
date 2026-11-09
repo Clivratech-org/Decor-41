@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductArt } from "@/lib/art";
@@ -10,6 +10,8 @@ import type { ProductCard as P } from "@/lib/products";
 import type { ShippingSettings } from "@/lib/settings";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
+import { Icon } from "@/components/Icons";
+import { whatsappOrderUrl } from "@/lib/whatsapp-order";
 
 type Detail = P & {
   description: string;
@@ -44,8 +46,23 @@ export function ProductDetail({
   const price = variant?.price || 0;
   const stock = variant?.stock ?? 0;
   const mrp = mrpFrom(product.variants[0]?.price || price);
-  const photos = product.images || [];
-  const photo = photos[i] || photos[0];
+
+  const gallery = useMemo(() => {
+    const urls: string[] = [];
+    if (variant?.imageUrl) urls.push(variant.imageUrl);
+    for (const url of product.images || []) {
+      if (url && !urls.includes(url)) urls.push(url);
+    }
+    return urls;
+  }, [variant?.imageUrl, product.images]);
+
+  const photo = gallery[i] || gallery[0];
+  const showCustom =
+    product.customOrderEnabled || product.categoryCustomOrder?.enabled;
+
+  useEffect(() => {
+    setI(0);
+  }, [v]);
 
   useEffect(() => {
     if (!photo) {
@@ -67,7 +84,10 @@ export function ProductDetail({
   }, [photo]);
 
   function add(buy?: boolean) {
-    if (!variant || stock < 1) return;
+    if (!variant || stock < 1) {
+      showToast("Out of stock");
+      return;
+    }
     addItem({
       productId: product.id,
       slug: product.slug,
@@ -87,6 +107,20 @@ export function ProductDetail({
     else showToast("Added to cart ✓");
   }
 
+  const waHref = whatsappOrderUrl(
+    settings.whatsapp,
+    [
+      {
+        name: product.name,
+        variant: variant?.name,
+        size: product.sizes[s],
+        qty: Math.max(1, q),
+        price,
+      },
+    ],
+    price * Math.max(1, q),
+  );
+
   return (
     <>
       <div className="w">
@@ -97,26 +131,28 @@ export function ProductDetail({
         <div className="det">
           <div className="gal">
             <div className="main">
-              <span className="tag">{Math.round((1 - price / mrp) * 100)}% off</span>
+              <span className={`tag${stock < 1 ? " bad" : ""}`}>
+                {stock < 1 ? "Out of stock" : `${Math.round((1 - price / mrp) * 100)}% off`}
+              </span>
               {photo && photoOk ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={photo}
-                  alt={`${product.name} photo ${Math.min(i, photos.length - 1) + 1}`}
+                  alt={`${product.name} photo ${Math.min(i, gallery.length - 1) + 1}`}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
                 <ProductArt artKey={product.artKey} color={variant.color} variantIndex={v} view={i} label={product.name} />
               )}
-              {photos.length > 1 && photoOk ? (
+              {gallery.length > 1 && photoOk ? (
                 <span className="photo-count">
-                  {Math.min(i, photos.length - 1) + 1} / {photos.length}
+                  {Math.min(i, gallery.length - 1) + 1} / {gallery.length}
                 </span>
               ) : null}
             </div>
             <div className="thumbs">
-              {photos.length > 1 && photoOk
-                ? photos.map((url, j) => (
+              {gallery.length > 1
+                ? gallery.map((url, j) => (
                     <button key={url} className={j === i ? "on" : ""} aria-label={`Photo ${j + 1}`} onClick={() => setI(j)} type="button">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={url} alt="" />
@@ -142,14 +178,27 @@ export function ProductDetail({
               {product.tagline} {product.description.split(". ")[0]}.
             </p>
             <p>
-              <b>{product.categorySlug === "laser" ? "Finish" : "Variant"}:</b>{" "}
-              <span className="mut">{variant.name}</span>
+              <b>Variant:</b> <span className="mut">{variant.name}</span>
             </p>
             <div className="sw">
               {product.variants.map((y, j) => (
-                <button key={y.id} className={`op ${j === v ? "on" : ""}`} onClick={() => { setV(j); setI(0); setQ(1); }} type="button">
-                  <span className="dot" style={{ background: y.color }} />
+                <button
+                  key={y.id}
+                  className={`op ${j === v ? "on" : ""}${y.stock < 1 ? " dim" : ""}`}
+                  onClick={() => {
+                    setV(j);
+                    setQ(1);
+                  }}
+                  type="button"
+                >
+                  {y.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={y.imageUrl} alt="" className="op-thumb" />
+                  ) : (
+                    <span className="dot" style={{ background: y.color }} />
+                  )}
                   {y.name}
+                  {y.stock < 1 ? " · OOS" : ""}
                 </button>
               ))}
             </div>
@@ -187,20 +236,42 @@ export function ProductDetail({
               <button className="btn g" onClick={() => add(true)} type="button" disabled={stock < 1}>
                 Buy now
               </button>
+              <a className="btn wa-btn" href={waHref} target="_blank" rel="noreferrer">
+                <Icon.WhatsApp /> Order via WhatsApp
+              </a>
             </div>
             <div className="perks">
               <div>
-                <b>🚚</b>Free shipping over ₹{settings.freeShippingThreshold}
+                <b>✓</b>Free shipping over ₹{settings.freeShippingThreshold}
               </div>
               <div>
-                <b>↩️</b>{settings.returnPolicyDays}-day easy returns
+                <b>✓</b>
+                {settings.returnPolicyDays}-day easy returns
               </div>
               <div>
-                <b>🔒</b>Secure payments
+                <b>✓</b>Secure payments
               </div>
             </div>
           </div>
         </div>
+
+        {showCustom ? (
+          <div className="panel custom-band">
+            <div>
+              <span className="chip">Custom order</span>
+              <h2 style={{ margin: "8px 0 10px" }}>
+                {product.categoryCustomOrder?.title || "Made to order"}
+              </h2>
+              <p className="mut">
+                {product.categoryCustomOrder?.body ||
+                  "Send your design for this category — we’ll cut it and get in touch."}
+              </p>
+            </div>
+            <Link className="btn" href={`/custom?category=${product.categorySlug}`}>
+              Start a custom order
+            </Link>
+          </div>
+        ) : null}
 
         <div className="tabs" role="tablist">
           {["Description", "Features", "Specifications", "Delivery & returns"].map((t, j) => (

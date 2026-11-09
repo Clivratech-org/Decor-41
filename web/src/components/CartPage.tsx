@@ -8,6 +8,8 @@ import { rupees } from "@/lib/money";
 import type { ProductCard as P } from "@/lib/products";
 import type { ShippingSettings } from "@/lib/settings";
 import { useCart } from "@/context/CartContext";
+import { Icon } from "@/components/Icons";
+import { whatsappOrderUrl } from "@/lib/whatsapp-order";
 
 export function CartPageClient({
   products,
@@ -188,13 +190,32 @@ export function CartPageClient({
             <Link className="btn full" style={{ marginTop: 14 }} href="/checkout">
               Proceed to checkout →
             </Link>
+            <a
+              className="btn wa-btn full"
+              style={{ marginTop: 10 }}
+              href={whatsappOrderUrl(
+                settings.whatsapp,
+                cart.map((c) => ({
+                  name: c.name,
+                  variant: c.variantName,
+                  size: c.size,
+                  qty: c.qty,
+                  price: c.price,
+                })),
+                total,
+              )}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Icon.WhatsApp /> Order via WhatsApp
+            </a>
             <Link className="btn g full" style={{ marginTop: 10 }} href="/">
               Continue shopping
             </Link>
             <div className="sec">
-              <span>🔒 Secure</span>
-              <span>↩️ 7-day returns</span>
-              <span>🚚 Tracked delivery</span>
+              <span>Secure</span>
+              <span>7-day returns</span>
+              <span>Tracked delivery</span>
             </div>
           </div>
         </div>

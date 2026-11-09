@@ -782,6 +782,10 @@
   margin: 0;
 }
 
+.admin-app .variant-row-img .variant-image {
+  grid-column: 1 / -1;
+}
+
 .admin-app .section {
   margin: 6px 0 22px;
 }

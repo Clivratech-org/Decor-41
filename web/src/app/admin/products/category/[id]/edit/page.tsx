@@ -12,6 +12,9 @@ type Category = {
   imageUrl: string | null;
   parentId: string | null;
   childCount: number;
+  customOrderEnabled?: boolean;
+  customOrderTitle?: string;
+  customOrderBody?: string;
 };
 
 export default function EditCategoryPage() {
@@ -37,6 +40,9 @@ export default function EditCategoryPage() {
         sortOrder: category.sortOrder,
         imageUrl: category.imageUrl || "",
         parentId: category.parentId || "",
+        customOrderEnabled: !!category.customOrderEnabled,
+        customOrderTitle: category.customOrderTitle || "Made to order",
+        customOrderBody: category.customOrderBody || "",
       }}
     />
   );

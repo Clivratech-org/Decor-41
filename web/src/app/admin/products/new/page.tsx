@@ -26,9 +26,10 @@ function NewProduct() {
         tagline: "",
         description: "",
         stock: 1,
-        variants: [{ name: "Standard", price: 0, stock: 1 }],
+        variants: [{ name: "Standard", price: 0, stock: 1, imageUrl: "" }],
         images: [],
         visible: true,
+        customOrderEnabled: false,
       }}
     />
   );

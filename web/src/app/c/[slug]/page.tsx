@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Footer } from "@/components/Footer";
-import { ProductCard } from "@/components/ProductCard";
+import { ProductFilters } from "@/components/ProductFilters";
 import { SafeImage } from "@/components/SafeImage";
 import { getCategories, getProducts } from "@/lib/products";
 import { getSettings } from "@/lib/settings";
@@ -41,8 +41,22 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
             </p>
           </div>
         </div>
+        {c.customOrderEnabled ? (
+          <div className="panel custom-band">
+            <div>
+              <span className="chip">Custom order</span>
+              <h2 style={{ margin: "8px 0 10px" }}>{c.customOrderTitle || "Made to order"}</h2>
+              <p className="mut">
+                {c.customOrderBody || "Send your design for this category — we’ll cut it and get in touch."}
+              </p>
+            </div>
+            <Link className="btn" href={`/custom?category=${c.slug}`}>
+              Start a custom order
+            </Link>
+          </div>
+        ) : null}
         {children.length > 0 ? (
-          <div className="g4" style={{ marginBottom: 28 }}>
+          <div className="g4 collect-cats" style={{ marginBottom: 28 }}>
             {children.map((child) => (
               <Link key={child.id} className="cat" href={`/c/${child.slug}`}>
                 <div className="art">
@@ -56,11 +70,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
             ))}
           </div>
         ) : null}
-        <div className="g4">
-          {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+        <ProductFilters products={products} />
       </div>
       <Footer categories={cats.filter((x) => !x.parentId)} settings={settings} />
     </>

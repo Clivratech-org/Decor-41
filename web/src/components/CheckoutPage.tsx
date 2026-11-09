@@ -9,6 +9,8 @@ import { ProductArt } from "@/lib/art";
 import { rupees } from "@/lib/money";
 import type { ShippingSettings } from "@/lib/settings";
 import { useCart } from "@/context/CartContext";
+import { Icon } from "@/components/Icons";
+import { whatsappOrderUrl } from "@/lib/whatsapp-order";
 
 declare global {
   interface Window {
@@ -300,6 +302,25 @@ export function CheckoutPageClient({
               <button className="btn full" style={{ marginTop: 14, padding: 16 }} onClick={place} disabled={busy} type="button">
                 {busy ? "Processing…" : `Pay ${rupees(total)} securely`}
               </button>
+              <a
+                className="btn wa-btn full"
+                style={{ marginTop: 10, padding: 14 }}
+                href={whatsappOrderUrl(
+                  settings.whatsapp,
+                  cart.map((c) => ({
+                    name: c.name,
+                    variant: c.variantName,
+                    size: c.size,
+                    qty: c.qty,
+                    price: c.price,
+                  })),
+                  total,
+                )}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Icon.WhatsApp /> Order via WhatsApp
+              </a>
             </div>
           </div>
 
