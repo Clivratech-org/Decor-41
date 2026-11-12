@@ -69,7 +69,10 @@ export function HomePage({
   return (
     <>
       <section className="hero-bleed">
-        <div className="hero-photo" aria-hidden />
+        <div className="hero-photo" aria-hidden>
+          <span className="hero-slide a" />
+          <span className="hero-slide b" />
+        </div>
         <div className="hero-veil" aria-hidden />
         <div className="hero-inner">
           <div className="logo lg">
