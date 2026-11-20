@@ -19,6 +19,8 @@ const fraunces = Fraunces({
   variable: "--font-fraunces",
 });
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: {
     default: "Decor 41 — Style it. Cut it. Drive it.",

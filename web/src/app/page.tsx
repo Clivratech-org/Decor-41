@@ -2,6 +2,8 @@ import { HomePage } from "@/components/HomePage";
 import { getCategories, getProducts } from "@/lib/products";
 import { getFeaturedCoupons, getSettings } from "@/lib/settings";
 
+export const dynamic = "force-dynamic";
+
 export default async function Page() {
   const [categories, products, settings, coupons] = await Promise.all([
     getCategories(),
