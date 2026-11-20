@@ -1,5 +1,6 @@
 "use client";
 
+import { ImageField } from "@/components/admin/ImageField";
 import type { ShippingSettings } from "@/lib/settings";
 import { useCallback, useEffect, useState } from "react";
 
@@ -51,15 +52,39 @@ export default function AdminShippingPage() {
     }
   }
 
-  if (loading || !form) return <h1>Shipping &amp; contact</h1>;
+  if (loading || !form) return <h1>Settings</h1>;
 
   return (
     <>
-      <h1>Shipping &amp; contact</h1>
+      <h1>Settings</h1>
       {msg ? (
         <p style={{ color: "var(--a)", marginBottom: 12 }}>{msg}</p>
       ) : null}
       <form onSubmit={save}>
+        <div className="bx">
+          <h3 style={{ marginTop: 0 }}>Hero backgrounds</h3>
+          <p className="hint" style={{ marginTop: 0 }}>
+            Upload up to 3 homepage hero images. Empty slots use the default brand photos.
+          </p>
+          <ImageField
+            label="Hero image 1"
+            folder="hero"
+            value={form.heroImage1}
+            onChange={(url) => setStr("heroImage1", url)}
+          />
+          <ImageField
+            label="Hero image 2"
+            folder="hero"
+            value={form.heroImage2}
+            onChange={(url) => setStr("heroImage2", url)}
+          />
+          <ImageField
+            label="Hero image 3"
+            folder="hero"
+            value={form.heroImage3}
+            onChange={(url) => setStr("heroImage3", url)}
+          />
+        </div>
         <div className="bx">
           <h3 style={{ marginTop: 0 }}>Shipping fees</h3>
           <label>Standard shipping fee (₹)</label>

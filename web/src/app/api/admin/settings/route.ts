@@ -27,6 +27,9 @@ export async function PUT(req: Request) {
     "contactEmail",
     "contactAddress",
     "whatsapp",
+    "heroImage1",
+    "heroImage2",
+    "heroImage3",
   ];
   for (const key of keys) {
     if (body[key] !== undefined) patch[key] = body[key] as string | number;

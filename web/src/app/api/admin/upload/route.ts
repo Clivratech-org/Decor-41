@@ -2,7 +2,7 @@ import { getAdminSession } from "@/lib/auth";
 import { uploadObject, type UploadFolder } from "@/lib/storage";
 import { NextResponse } from "next/server";
 
-const IMAGE_FOLDERS = new Set<UploadFolder>(["products", "categories"]);
+const IMAGE_FOLDERS = new Set<UploadFolder>(["products", "categories", "hero"]);
 
 export async function POST(req: Request) {
   if (!(await getAdminSession())) {

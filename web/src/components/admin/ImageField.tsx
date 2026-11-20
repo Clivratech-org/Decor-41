@@ -9,7 +9,7 @@ export function ImageField({
   onChange,
 }: {
   label: string;
-  folder: "products" | "categories";
+  folder: "products" | "categories" | "hero";
   value: string;
   onChange: (url: string) => void;
 }) {

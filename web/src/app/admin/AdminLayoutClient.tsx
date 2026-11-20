@@ -10,7 +10,7 @@ const nav = [
   { href: "/admin/leads", label: "📥 Leads" },
   { href: "/admin/products", label: "📦 Products" },
   { href: "/admin/coupons", label: "🏷️ Coupons" },
-  { href: "/admin/shipping", label: "🚚 Shipping" },
+  { href: "/admin/shipping", label: "⚙️ Settings" },
 ];
 
 export default function AdminLayoutClient({

@@ -1,6 +1,6 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-const FOLDERS = ["products", "categories", "custom"] as const;
+const FOLDERS = ["products", "categories", "custom", "hero"] as const;
 export type UploadFolder = (typeof FOLDERS)[number];
 
 function required(name: string) {
@@ -39,7 +39,7 @@ export function normalizeMediaUrl(url: string | null | undefined) {
 }
 
 export function isSafeKey(key: string) {
-  return /^(products|categories|custom)\/[a-zA-Z0-9._-]+$/.test(key);
+  return /^(products|categories|custom|hero)\/[a-zA-Z0-9._-]+$/.test(key);
 }
 
 export async function uploadObject(file: File, folder: UploadFolder) {

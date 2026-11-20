@@ -9,6 +9,8 @@ import type { ProductCard as P } from "@/lib/products";
 import type { ShippingSettings } from "@/lib/settings";
 import { useCart } from "@/context/CartContext";
 
+const HERO_FALLBACKS = ["/brand/hero-1.jpg", "/brand/hero-2.jpg", "/brand/hero-3.jpg"] as const;
+
 function CollectThumb({
   src,
   artKey,
@@ -65,13 +67,17 @@ export function HomePage({
   const [lead, setLead] = useState({ name: "", contact: "", interest: "", notes: "" });
   const [sending, setSending] = useState(false);
   const firstShop = categories[0]?.slug || "laser";
+  const hero1 = settings.heroImage1 || HERO_FALLBACKS[0];
+  const hero2 = settings.heroImage2 || HERO_FALLBACKS[1];
+  const hero3 = settings.heroImage3 || HERO_FALLBACKS[2];
 
   return (
     <>
-      <section className="hero-bleed">
+      <section className="hero-bleed hero-cinematic">
         <div className="hero-photo" aria-hidden>
-          <span className="hero-slide a" />
-          <span className="hero-slide b" />
+          <span className="hero-slide a" style={{ backgroundImage: `url(${hero1})` }} />
+          <span className="hero-slide b" style={{ backgroundImage: `url(${hero2})` }} />
+          <span className="hero-slide c" style={{ backgroundImage: `url(${hero3})` }} />
         </div>
         <div className="hero-veil" aria-hidden />
         <div className="hero-inner">
@@ -79,15 +85,25 @@ export function HomePage({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/brand/decor41-logo-clear.png" alt="Decor41" />
           </div>
-          <h1>Style it. Cut it. Drive it.</h1>
-          <p className="mut">Laser-cut décor, posters and auto style — made to stand out at home and on the road.</p>
+          <h1>
+            Style it. Cut it.
+            <em> Drive it.</em>
+          </h1>
+          <p className="mut">
+            Premium décor &amp; automotive collectibles designed to make your space stand out.
+          </p>
           <div className="hero-cta">
             <Link className="btn" href={`/c/${firstShop}`}>
-              Shop now
+              Explore Collection →
             </Link>
             <Link className="btn g" href="/custom">
-              Custom order
+              Create Your Own
             </Link>
+          </div>
+          <div className="hero-dots" aria-hidden>
+            <i className="on" />
+            <i />
+            <i />
           </div>
         </div>
       </section>

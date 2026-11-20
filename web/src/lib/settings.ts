@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { normalizeMediaUrl } from "./storage";
 
 export type ShippingSettings = {
   shippingStandardFee: number;
@@ -12,6 +13,9 @@ export type ShippingSettings = {
   contactEmail: string;
   contactAddress: string;
   whatsapp: string;
+  heroImage1: string;
+  heroImage2: string;
+  heroImage3: string;
 };
 
 const defaults: ShippingSettings = {
@@ -26,7 +30,26 @@ const defaults: ShippingSettings = {
   contactEmail: "hello@decor41.com",
   contactAddress: "Sooleswaranpetti, Valparai road, Pollachi",
   whatsapp: "918667706941",
+  heroImage1: "",
+  heroImage2: "",
+  heroImage3: "",
 };
+
+const heroFallbacks = ["/brand/hero-1.jpg", "/brand/hero-2.jpg", "/brand/hero-3.jpg"] as const;
+
+function storedMedia(raw: string | undefined) {
+  const value = raw?.trim() || "";
+  if (!value) return "";
+  return normalizeMediaUrl(value) || value;
+}
+
+export function resolveHeroImages(settings: Pick<ShippingSettings, "heroImage1" | "heroImage2" | "heroImage3">) {
+  return [
+    settings.heroImage1 || heroFallbacks[0],
+    settings.heroImage2 || heroFallbacks[1],
+    settings.heroImage3 || heroFallbacks[2],
+  ] as const;
+}
 
 export async function getSettings(): Promise<ShippingSettings> {
   const rows = await prisma.siteSetting.findMany();
@@ -43,6 +66,9 @@ export async function getSettings(): Promise<ShippingSettings> {
     contactEmail: map.contactEmail ?? defaults.contactEmail,
     contactAddress: map.contactAddress ?? defaults.contactAddress,
     whatsapp: map.whatsapp ?? defaults.whatsapp,
+    heroImage1: storedMedia(map.heroImage1),
+    heroImage2: storedMedia(map.heroImage2),
+    heroImage3: storedMedia(map.heroImage3),
   };
 }
 
