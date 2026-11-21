@@ -12,6 +12,7 @@ import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icons";
 import { whatsappOrderUrl } from "@/lib/whatsapp-order";
+import { MAX_PRODUCT_PHOTOS } from "@/lib/photos";
 
 type Detail = P & {
   description: string;
@@ -56,7 +57,7 @@ export function ProductDetail({
     return urls;
   }, [variant?.imageUrl, product.images]);
 
-  const photo = gallery[i] || gallery[0];
+  const photo = gallery[i];
   const showCustom =
     product.customOrderEnabled || product.categoryCustomOrder?.enabled;
 
@@ -138,31 +139,38 @@ export function ProductDetail({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={photo}
-                  alt={`${product.name} photo ${Math.min(i, gallery.length - 1) + 1}`}
+                  alt={`${product.name} photo ${i + 1}`}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
                 <ProductArt artKey={product.artKey} color={variant.color} variantIndex={v} view={i} label={product.name} />
               )}
-              {gallery.length > 1 && photoOk ? (
+              {gallery.length > 1 && photo && photoOk ? (
                 <span className="photo-count">
-                  {Math.min(i, gallery.length - 1) + 1} / {gallery.length}
+                  {i + 1} / {gallery.length}
                 </span>
               ) : null}
             </div>
             <div className="thumbs">
-              {gallery.length > 1
-                ? gallery.map((url, j) => (
-                    <button key={url} className={j === i ? "on" : ""} aria-label={`Photo ${j + 1}`} onClick={() => setI(j)} type="button">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
+              {Array.from({ length: MAX_PRODUCT_PHOTOS }, (_, j) => {
+                const url = gallery[j];
+                return (
+                  <button
+                    key={url ? `${url}-${j}` : `art-${j}`}
+                    className={j === i ? "on" : ""}
+                    aria-label={url ? `Photo ${j + 1}` : `View ${j + 1}`}
+                    onClick={() => setI(j)}
+                    type="button"
+                  >
+                    {url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img src={url} alt="" />
-                    </button>
-                  ))
-                : [0, 1, 2].map((j) => (
-                    <button key={j} className={j === i ? "on" : ""} aria-label={`View ${j + 1}`} onClick={() => setI(j)} type="button">
+                    ) : (
                       <ProductArt artKey={product.artKey} color={variant.color} variantIndex={v} view={j} label={product.name} />
-                    </button>
-                  ))}
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div>
