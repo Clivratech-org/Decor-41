@@ -15,14 +15,16 @@ export function SiteChrome({
   children,
   categories,
   whatsapp,
+  minOrderAmount = 0,
 }: {
   children: React.ReactNode;
   categories: Cat[];
   whatsapp: string;
+  minOrderAmount?: number;
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { count } = useCart();
+  const { count, subtotal } = useCart();
   const { data: session } = useSession();
   const navRef = useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -197,6 +199,20 @@ export function SiteChrome({
         ) : null}
       </header>
       <div id="pg" style={{ width: `${progress}%` }} />
+      {!isAdmin && !isCheckout && count > 0 && minOrderAmount > 0 ? (
+        <div className="min-order-strip">
+          <div className="w">
+            <p>
+              {subtotal >= minOrderAmount
+                ? "Minimum order reached — you can checkout"
+                : `Add ₹${Math.max(0, minOrderAmount - subtotal).toLocaleString("en-IN")} more to reach the ₹${minOrderAmount.toLocaleString("en-IN")} minimum`}
+            </p>
+            <div className="bar">
+              <i style={{ width: `${Math.min(100, (subtotal / minOrderAmount) * 100)}%` }} />
+            </div>
+          </div>
+        </div>
+      ) : null}
       <main id="app">{children}</main>
       <ScrollReveal />
       <CursorGlow />

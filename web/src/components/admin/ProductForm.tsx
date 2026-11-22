@@ -12,6 +12,8 @@ export type VariantDraft = {
   price: number;
   stock: number;
   imageUrl?: string;
+  sizesEnabled?: boolean;
+  sizes?: string[];
 };
 
 export type ProductDraft = {
@@ -55,15 +57,27 @@ export function ProductForm({
       setError("Product name is required");
       return;
     }
-    const variants = form.variants.map((variant) => ({
-      ...variant,
-      name: variant.name.trim(),
-      price: Math.max(0, Math.round(Number(variant.price) || 0)),
-      stock: Math.max(0, Math.round(Number(variant.stock) || 0)),
-      imageUrl: variant.imageUrl?.trim() || "",
-    }));
+    const variants = form.variants.map((variant) => {
+      const sizes = (variant.sizes || [])
+        .map((size) => size.trim())
+        .filter(Boolean)
+        .slice(0, 12);
+      return {
+        ...variant,
+        name: variant.name.trim(),
+        price: Math.max(0, Math.round(Number(variant.price) || 0)),
+        stock: Math.max(0, Math.round(Number(variant.stock) || 0)),
+        imageUrl: variant.imageUrl?.trim() || "",
+        sizesEnabled: !!variant.sizesEnabled,
+        sizes: variant.sizesEnabled ? sizes : [],
+      };
+    });
     if (!variants.length || variants.some((variant) => !variant.name)) {
       setError("Each variant needs a name");
+      return;
+    }
+    if (variants.some((variant) => variant.sizesEnabled && !variant.sizes.length)) {
+      setError("Turned-on sizes need at least one size name");
       return;
     }
     setBusy(true);
@@ -179,6 +193,37 @@ export function ProductForm({
                   onChange={(imageUrl) => updateVariant(index, { imageUrl })}
                 />
               </div>
+              <div className="variant-sizes">
+                <label className="check">
+                  <input
+                    type="checkbox"
+                    checked={!!variant.sizesEnabled}
+                    onChange={(e) => updateVariant(index, { sizesEnabled: e.target.checked })}
+                  />
+                  Enable sizes for this variant
+                </label>
+                {variant.sizesEnabled ? (
+                  <>
+                    <label className="variant-field name" style={{ display: "block", marginTop: 8 }}>
+                      <span>Sizes (comma separated)</span>
+                      <input
+                        value={(variant.sizes || []).join(", ")}
+                        placeholder="A3, A4, A5"
+                        aria-label={`Variant ${index + 1} sizes`}
+                        onChange={(e) =>
+                          updateVariant(index, {
+                            sizes: e.target.value
+                              .split(",")
+                              .map((part) => part.trim())
+                              .filter(Boolean),
+                          })
+                        }
+                      />
+                    </label>
+                    <p className="hint">Customers only see these sizes when this option is selected.</p>
+                  </>
+                ) : null}
+              </div>
             </div>
           ))}
         </div>
@@ -188,7 +233,14 @@ export function ProductForm({
           onClick={() =>
             set("variants", [
               ...form.variants,
-              { name: "", price: form.variants[0]?.price || 0, stock: 0, imageUrl: "" },
+              {
+                name: "",
+                price: form.variants[0]?.price || 0,
+                stock: 0,
+                imageUrl: "",
+                sizesEnabled: false,
+                sizes: [],
+              },
             ])
           }
         >

@@ -42,10 +42,13 @@ export function CheckoutPageClient({
         ? 0
         : settings.shippingStandardFee;
   const total = subtotal - discount + ship;
+  const minOrder = Math.max(0, settings.minOrderAmount || 0);
+  const canOrder = minOrder <= 0 || subtotal >= minOrder;
 
   useEffect(() => {
     if (!cart.length) router.replace("/cart");
-  }, [cart.length, router]);
+    else if (!canOrder) router.replace("/cart");
+  }, [cart.length, canOrder, router]);
 
   async function applyCoupon() {
     const el = document.getElementById("cpn") as HTMLInputElement | null;
@@ -74,6 +77,11 @@ export function CheckoutPageClient({
   }
 
   async function place() {
+    if (!canOrder) {
+      showToast(`Minimum order is ${rupees(minOrder)}`);
+      router.replace("/cart");
+      return;
+    }
     const rules: Record<string, boolean> = {
       n: val("n").length > 1,
       ph: /^\d{10}$/.test(val("ph").replace(/\s/g, "")),

@@ -47,6 +47,9 @@ export function ProductDetail({
   const price = variant?.price || 0;
   const stock = variant?.stock ?? 0;
   const mrp = mrpFrom(product.variants[0]?.price || price);
+  const activeSizes =
+    variant?.sizesEnabled && variant.sizes?.length ? variant.sizes : [];
+  const selectedSize = activeSizes[s] || "Standard";
 
   const gallery = useMemo(() => {
     const urls: string[] = [];
@@ -63,6 +66,7 @@ export function ProductDetail({
 
   useEffect(() => {
     setI(0);
+    setS(0);
   }, [v]);
 
   useEffect(() => {
@@ -100,7 +104,7 @@ export function ProductDetail({
       variantId: variant.id,
       variantName: variant.name,
       color: variant.color,
-      size: product.sizes[s] || "Standard",
+      size: selectedSize,
       price,
       qty: Math.min(q, stock),
     });
@@ -114,7 +118,7 @@ export function ProductDetail({
       {
         name: product.name,
         variant: variant?.name,
-        size: product.sizes[s],
+        size: selectedSize,
         qty: Math.max(1, q),
         price,
       },
@@ -210,16 +214,20 @@ export function ProductDetail({
                 </button>
               ))}
             </div>
-            <p>
-              <b>Size:</b> <span className="mut">{product.sizes[s]}</span>
-            </p>
-            <div className="sw">
-              {product.sizes.map((z, j) => (
-                <button key={z} className={`op ${j === s ? "on" : ""}`} onClick={() => setS(j)} type="button">
-                  {z}
-                </button>
-              ))}
-            </div>
+            {activeSizes.length ? (
+              <>
+                <p>
+                  <b>Size:</b> <span className="mut">{selectedSize}</span>
+                </p>
+                <div className="sw">
+                  {activeSizes.map((z, j) => (
+                    <button key={z} className={`op ${j === s ? "on" : ""}`} onClick={() => setS(j)} type="button">
+                      {z}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : null}
             <div style={{ display: "flex", alignItems: "baseline", gap: 12, margin: "10px 0 16px" }}>
               <span className="pr" style={{ fontSize: 40 }}>
                 {rupees(price)}

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { calcDiscount, calcShipping, getSettings } from "@/lib/settings";
+import { calcDiscount, calcShipping, getSettings, meetsMinOrder } from "@/lib/settings";
+import { rupees } from "@/lib/money";
 
 const schema = z.object({
   customerName: z.string().min(2),
@@ -35,6 +36,12 @@ export async function POST(req: Request) {
     const body = schema.parse(await req.json());
     const settings = await getSettings();
     const subtotal = body.items.reduce((a, i) => a + i.unitPrice * i.quantity, 0);
+    if (!meetsMinOrder(subtotal, settings)) {
+      return NextResponse.json(
+        { error: `Minimum order amount is ${rupees(settings.minOrderAmount)}` },
+        { status: 400 },
+      );
+    }
     const discount = await calcDiscount(subtotal, body.couponCode);
     const shippingFee = calcShipping(subtotal, body.shippingMethod, settings);
     const total = subtotal - discount + shippingFee;

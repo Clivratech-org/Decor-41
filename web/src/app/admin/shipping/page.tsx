@@ -64,29 +64,55 @@ export default function AdminShippingPage() {
         <div className="bx">
           <h3 style={{ marginTop: 0 }}>Hero backgrounds</h3>
           <p className="hint" style={{ marginTop: 0 }}>
-            Upload up to 3 homepage hero images. Empty slots use the default brand photos.
+            Upload desktop and optional mobile crops for each slide. Empty mobile slots reuse the desktop image.
           </p>
           <ImageField
-            label="Hero image 1"
+            label="Hero image 1 (desktop)"
             folder="hero"
             value={form.heroImage1}
             onChange={(url) => setStr("heroImage1", url)}
           />
           <ImageField
-            label="Hero image 2"
+            label="Hero image 1 (mobile)"
+            folder="hero"
+            value={form.heroImage1Mobile}
+            onChange={(url) => setStr("heroImage1Mobile", url)}
+          />
+          <ImageField
+            label="Hero image 2 (desktop)"
             folder="hero"
             value={form.heroImage2}
             onChange={(url) => setStr("heroImage2", url)}
           />
           <ImageField
-            label="Hero image 3"
+            label="Hero image 2 (mobile)"
+            folder="hero"
+            value={form.heroImage2Mobile}
+            onChange={(url) => setStr("heroImage2Mobile", url)}
+          />
+          <ImageField
+            label="Hero image 3 (desktop)"
             folder="hero"
             value={form.heroImage3}
             onChange={(url) => setStr("heroImage3", url)}
           />
+          <ImageField
+            label="Hero image 3 (mobile)"
+            folder="hero"
+            value={form.heroImage3Mobile}
+            onChange={(url) => setStr("heroImage3Mobile", url)}
+          />
         </div>
         <div className="bx">
-          <h3 style={{ marginTop: 0 }}>Shipping fees</h3>
+          <h3 style={{ marginTop: 0 }}>Orders &amp; shipping</h3>
+          <label>Minimum order amount (₹)</label>
+          <input
+            type="number"
+            min={0}
+            value={form.minOrderAmount}
+            onChange={(e) => setNum("minOrderAmount", e.target.value)}
+          />
+          <p className="hint">Set 0 to disable. Cart shows a progress bar and checkout stays locked until this amount.</p>
           <label>Standard shipping fee (₹)</label>
           <input
             type="number"

@@ -19,6 +19,7 @@ export async function PUT(req: Request) {
     "shippingStandardFee",
     "shippingExpressFee",
     "freeShippingThreshold",
+    "minOrderAmount",
     "shippingStandardDays",
     "shippingExpressDays",
     "customProductionDays",
@@ -30,6 +31,9 @@ export async function PUT(req: Request) {
     "heroImage1",
     "heroImage2",
     "heroImage3",
+    "heroImage1Mobile",
+    "heroImage2Mobile",
+    "heroImage3Mobile",
   ];
   for (const key of keys) {
     if (body[key] !== undefined) patch[key] = body[key] as string | number;

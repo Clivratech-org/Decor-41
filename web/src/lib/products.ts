@@ -22,9 +22,28 @@ export type ProductCard = {
     body: string;
   };
   fromPrice: number;
-  variants: { id: string; name: string; price: number; stock: number; color: string; imageUrl: string | null }[];
+  variants: {
+    id: string;
+    name: string;
+    price: number;
+    stock: number;
+    color: string;
+    imageUrl: string | null;
+    sizesEnabled: boolean;
+    sizes: string[];
+  }[];
   sizes: string[];
 };
+
+function parseSizeList(raw: string | null | undefined): string[] {
+  try {
+    const parsed = JSON.parse(raw || "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((item) => String(item || "").trim()).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
 
 export async function getCategories() {
   const rows = await prisma.category.findMany({ orderBy: { sortOrder: "asc" } });
@@ -108,7 +127,16 @@ function mapProduct(p: {
     customOrderTitle?: string;
     customOrderBody?: string;
   };
-  variants: { id: string; name: string; price: number; stock: number; color: string; imageUrl?: string | null }[];
+  variants: {
+    id: string;
+    name: string;
+    price: number;
+    stock: number;
+    color: string;
+    imageUrl?: string | null;
+    sizesEnabled?: boolean;
+    sizes?: string;
+  }[];
 }): ProductCard {
   const prices = p.variants.map((v) => v.price);
   const images = productPhotoList(p.images, p.imageUrl);
@@ -140,7 +168,9 @@ function mapProduct(p: {
       stock: v.stock,
       color: v.color,
       imageUrl: normalizeMediaUrl(v.imageUrl || null),
+      sizesEnabled: !!v.sizesEnabled,
+      sizes: parseSizeList(v.sizes),
     })),
-    sizes: JSON.parse(p.sizes) as string[],
+    sizes: parseSizeList(p.sizes),
   };
 }

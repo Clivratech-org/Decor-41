@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductArt, laserArtSvg } from "@/lib/art";
@@ -70,14 +70,29 @@ export function HomePage({
   const hero1 = settings.heroImage1 || HERO_FALLBACKS[0];
   const hero2 = settings.heroImage2 || HERO_FALLBACKS[1];
   const hero3 = settings.heroImage3 || HERO_FALLBACKS[2];
+  const hero1m = settings.heroImage1Mobile || hero1;
+  const hero2m = settings.heroImage2Mobile || hero2;
+  const hero3m = settings.heroImage3Mobile || hero3;
 
   return (
     <>
-      <section className="hero-bleed hero-cinematic">
+      <section
+        className="hero-bleed hero-cinematic"
+        style={
+          {
+            ["--hero-a" as string]: `url(${hero1})`,
+            ["--hero-b" as string]: `url(${hero2})`,
+            ["--hero-c" as string]: `url(${hero3})`,
+            ["--hero-a-m" as string]: `url(${hero1m})`,
+            ["--hero-b-m" as string]: `url(${hero2m})`,
+            ["--hero-c-m" as string]: `url(${hero3m})`,
+          } as CSSProperties
+        }
+      >
         <div className="hero-photo" aria-hidden>
-          <span className="hero-slide a" style={{ backgroundImage: `url(${hero1})` }} />
-          <span className="hero-slide b" style={{ backgroundImage: `url(${hero2})` }} />
-          <span className="hero-slide c" style={{ backgroundImage: `url(${hero3})` }} />
+          <span className="hero-slide a" />
+          <span className="hero-slide b" />
+          <span className="hero-slide c" />
         </div>
         <div className="hero-veil" aria-hidden />
         <div className="hero-inner">

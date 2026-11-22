@@ -65,7 +65,8 @@ export function ProductCard({ product }: { product: P }) {
       variantId: v.id,
       variantName: v.name,
       color: v.color,
-      size: product.sizes[0] || "Standard",
+      size:
+        v.sizesEnabled && v.sizes?.length ? v.sizes[0] : product.sizes[0] || "Standard",
       price: v.price,
       qty: 1,
     });

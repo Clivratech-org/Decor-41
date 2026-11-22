@@ -75,9 +75,9 @@ h2{font-size:clamp(26px,3.4vw,38px);letter-spacing:-.5px;margin:70px 0 22px}
 .hero-bleed{--mx:50%;--my:40%;--hx:0px;--hy:0px;position:relative;min-height:min(100vh,920px);display:flex;align-items:center;justify-content:flex-start;text-align:left;padding:72px 20px 56px;overflow:hidden;background:#1A1614}
 .hero-photo{position:absolute;inset:0;transform:translate3d(var(--hx),var(--hy),0) scale(1.06);transition:transform .4s cubic-bezier(.2,.7,.2,1);will-change:transform;overflow:hidden;pointer-events:none}
 .hero-slide{position:absolute;inset:0;background-position:center center;background-size:cover;background-repeat:no-repeat;transform-origin:center;animation:heroZoom 18s ease-in-out infinite alternate}
-.hero-slide.a{animation:heroZoom 18s ease-in-out infinite alternate,heroFadeA 21s ease-in-out infinite}
-.hero-slide.b{animation:heroZoom 18s ease-in-out infinite alternate,heroFadeB 21s ease-in-out infinite}
-.hero-slide.c{animation:heroZoom 18s ease-in-out infinite alternate,heroFadeC 21s ease-in-out infinite}
+.hero-slide.a{background-image:var(--hero-a);animation:heroZoom 18s ease-in-out infinite alternate,heroFadeA 21s ease-in-out infinite}
+.hero-slide.b{background-image:var(--hero-b);animation:heroZoom 18s ease-in-out infinite alternate,heroFadeB 21s ease-in-out infinite}
+.hero-slide.c{background-image:var(--hero-c);animation:heroZoom 18s ease-in-out infinite alternate,heroFadeC 21s ease-in-out infinite}
 .hero-veil{position:absolute;inset:0;pointer-events:none;background:
   linear-gradient(90deg,#14110Fe6 0%,#14110Fb3 22%,#14110F66 42%,transparent 58%),
   linear-gradient(180deg,#14110F40 0%,transparent 38%,#14110F99 100%)}
@@ -201,6 +201,9 @@ table.sp{width:100%;border-collapse:collapse}.sp td{padding:12px 0;border-bottom
 .ci.out{animation:out .35s forwards}
 .tr{display:flex;justify-content:space-between;padding:7px 0;color:var(--soft)}.tr.t{font-family:var(--hd);font-size:22px;color:var(--ink);border-top:1px solid var(--ln);margin-top:8px;padding-top:16px}.tr .ok{color:var(--at)}
 .bar{height:8px;background:var(--p2);border-radius:9px;overflow:hidden;margin:8px 0 4px}.bar i{display:block;height:100%;background:var(--a);border-radius:9px;transition:width .8s cubic-bezier(.2,.7,.2,1)}
+.min-order-strip{background:var(--hdr);border-bottom:1px solid var(--ln);padding:10px 0}
+.min-order-strip p{margin:0 0 6px;font-size:13px;color:var(--mut)}
+.min-order-strip .bar{margin:0}
 .cp{display:flex;gap:8px;margin:14px 0}.cp input{margin:0}
 .sec{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:var(--mut)}.sec span{background:var(--p2);padding:6px 10px;border-radius:99px}
 .empty{text-align:center;padding:70px 20px}
@@ -264,7 +267,9 @@ table.sp{width:100%;border-collapse:collapse}.sp td{padding:12px 0;border-bottom
   .hero-bleed{min-height:min(78vh,640px);padding:48px 16px 36px;justify-content:flex-end;align-items:flex-end}
   .hero-photo{transform:scale(1.08)}
   .hero-slide{animation:none;transform:none;background-position:center center}
-  .hero-slide.b,.hero-slide.c{opacity:0}
+  .hero-slide.a{background-image:var(--hero-a-m,var(--hero-a))}
+  .hero-slide.b{background-image:var(--hero-b-m,var(--hero-b));opacity:0}
+  .hero-slide.c{background-image:var(--hero-c-m,var(--hero-c));opacity:0}
   .hero-veil{background:linear-gradient(180deg,transparent 20%,#14110Fee 78%)}
   .hero-inner{max-width:100%;padding:0}
   .hero-cinematic .hero-inner .logo img{max-width:180px}
@@ -302,4 +307,5 @@ table.sp{width:100%;border-collapse:collapse}.sp td{padding:12px 0;border-bottom
 }
 @media(prefers-reduced-motion:reduce){*,::before,::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.rv,.rv.rv-left,.rv.rv-scale{opacity:1;transform:none}.hero-photo,.hero-slide{animation:none!important;transform:none}.hero-slide.b,.hero-slide.c{opacity:0}.cursor-dot{display:none}.has-cursor,.has-cursor *{cursor:auto}}
 .variant-row-img{display:grid;grid-template-columns:1.4fr .7fr .7fr auto;gap:10px;align-items:end;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--ln, #E2D6C6)}
-.variant-row-img .variant-image{grid-column:1/-1}
+.variant-row-img .variant-image,.variant-row-img .variant-sizes{grid-column:1/-1}
+.variant-sizes .check{display:flex;align-items:center;gap:8px;margin:4px 0}

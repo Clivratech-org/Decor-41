@@ -15,19 +15,42 @@ function parseVariantNames(raw: string) {
     .filter(Boolean);
 }
 
-type VariantInput = { id?: string; name: string; price: number; stock: number; imageUrl?: string | null };
+type VariantInput = {
+  id?: string;
+  name: string;
+  price: number;
+  stock: number;
+  imageUrl?: string | null;
+  sizesEnabled?: boolean;
+  sizes?: string[];
+};
+
+function cleanSizes(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item) => String(item || "").trim()).filter(Boolean).slice(0, 12);
+}
 
 function normalizeVariants(raw: unknown, fallbackPrice: number, fallbackStock = 0): VariantInput[] {
   if (Array.isArray(raw)) {
     const rows = raw
       .map((item) => {
-        const row = item as { id?: string; name?: string; price?: number; stock?: number; imageUrl?: string | null };
+        const row = item as {
+          id?: string;
+          name?: string;
+          price?: number;
+          stock?: number;
+          imageUrl?: string | null;
+          sizesEnabled?: boolean;
+          sizes?: unknown;
+        };
         return {
           id: row.id,
           name: String(row.name || "").trim(),
           price: Math.max(0, Math.round(Number(row.price) || 0)),
           stock: Math.max(0, Math.round(Number(row.stock) || 0)),
           imageUrl: row.imageUrl?.trim() || null,
+          sizesEnabled: !!row.sizesEnabled,
+          sizes: cleanSizes(row.sizes),
         };
       })
       .filter((row) => row.name);
@@ -41,6 +64,8 @@ function normalizeVariants(raw: unknown, fallbackPrice: number, fallbackStock = 
         price: Math.max(0, Math.round(fallbackPrice)),
         stock: Math.max(0, Math.round(fallbackStock)),
         imageUrl: null,
+        sizesEnabled: false,
+        sizes: [],
       }));
     }
   }
@@ -50,6 +75,8 @@ function normalizeVariants(raw: unknown, fallbackPrice: number, fallbackStock = 
       price: Math.max(0, Math.round(fallbackPrice)),
       stock: Math.max(0, Math.round(fallbackStock)),
       imageUrl: null,
+      sizesEnabled: false,
+      sizes: [],
     },
   ];
 }
@@ -70,7 +97,15 @@ function mapProduct(p: {
   artKey: number;
   category: { name: string };
   customOrderEnabled?: boolean;
-  variants: { id: string; name: string; price: number; stock: number; imageUrl?: string | null }[];
+  variants: {
+    id: string;
+    name: string;
+    price: number;
+    stock: number;
+    imageUrl?: string | null;
+    sizesEnabled?: boolean;
+    sizes?: string;
+  }[];
 }) {
   const prices = p.variants.map((v) => v.price);
   const images = productPhotoList(p.images, p.imageUrl);
@@ -90,6 +125,16 @@ function mapProduct(p: {
       price: v.price,
       stock: v.stock,
       imageUrl: v.imageUrl || null,
+      sizesEnabled: !!v.sizesEnabled,
+      sizes: cleanSizes(
+        (() => {
+          try {
+            return JSON.parse(v.sizes || "[]");
+          } catch {
+            return [];
+          }
+        })(),
+      ),
     })),
     imageUrl: images[0] || null,
     images,
@@ -170,6 +215,8 @@ export async function POST(req: Request) {
           price: variant.price,
           stock: variant.stock,
           imageUrl: variant.imageUrl || null,
+          sizesEnabled: !!variant.sizesEnabled,
+          sizes: JSON.stringify(variant.sizesEnabled ? variant.sizes || [] : []),
           color: COLORS[i % COLORS.length],
           sortOrder: i,
         })),
@@ -215,6 +262,16 @@ export async function PUT(req: Request) {
         price: v.price,
         stock: v.stock,
         imageUrl: v.imageUrl,
+        sizesEnabled: v.sizesEnabled,
+        sizes: cleanSizes(
+          (() => {
+            try {
+              return JSON.parse(v.sizes || "[]");
+            } catch {
+              return [];
+            }
+          })(),
+        ),
       })),
     (existing.variants[0]?.price ?? Number(body.price)) || 0,
     existing.stock,
@@ -255,6 +312,8 @@ export async function PUT(req: Request) {
           price: variant.price,
           stock: variant.stock,
           imageUrl: variant.imageUrl || null,
+          sizesEnabled: !!variant.sizesEnabled,
+          sizes: JSON.stringify(variant.sizesEnabled ? variant.sizes || [] : []),
           sortOrder: i,
         },
       });
@@ -266,6 +325,8 @@ export async function PUT(req: Request) {
           price: variant.price,
           stock: variant.stock,
           imageUrl: variant.imageUrl || null,
+          sizesEnabled: !!variant.sizesEnabled,
+          sizes: JSON.stringify(variant.sizesEnabled ? variant.sizes || [] : []),
           color: COLORS[i % COLORS.length],
           sortOrder: i,
         },

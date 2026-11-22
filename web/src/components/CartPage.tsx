@@ -32,6 +32,9 @@ export function CartPageClient({
           : settings.shippingStandardFee;
   const total = subtotal - discount + ship;
   const left = Math.max(0, settings.freeShippingThreshold - subtotal);
+  const minOrder = Math.max(0, settings.minOrderAmount || 0);
+  const minLeft = Math.max(0, minOrder - subtotal);
+  const canCheckout = minOrder <= 0 || subtotal >= minOrder;
 
   async function applyCoupon() {
     const el = document.getElementById("cpn") as HTMLInputElement | null;
@@ -147,6 +150,23 @@ export function CartPageClient({
           </div>
           <div className="panel sticky">
             <h3 style={{ margin: "0 0 12px", fontSize: 20 }}>Order summary</h3>
+            {minOrder > 0 ? (
+              <>
+                <div style={{ fontSize: 13, margin: "10px 0 0" }} className="mut">
+                  {minLeft ? (
+                    <>
+                      Add <b style={{ color: "var(--at)" }}>{rupees(minLeft)}</b> more to reach the minimum order of{" "}
+                      {rupees(minOrder)}
+                    </>
+                  ) : (
+                    "Minimum order amount reached"
+                  )}
+                </div>
+                <div className="bar">
+                  <i style={{ width: `${Math.min(100, (subtotal / minOrder) * 100)}%` }} />
+                </div>
+              </>
+            ) : null}
             {shipMethod === "std" && (
               <>
                 <div style={{ fontSize: 13, margin: "10px 0 0" }} className="mut">
@@ -155,7 +175,7 @@ export function CartPageClient({
                       Add <b style={{ color: "var(--at)" }}>{rupees(left)}</b> more for free shipping
                     </>
                   ) : (
-                    "🎉 You’ve unlocked free shipping"
+                    "You’ve unlocked free shipping"
                   )}
                 </div>
                 <div className="bar">
@@ -187,28 +207,40 @@ export function CartPageClient({
               <span>Total</span>
               <span>{rupees(total)}</span>
             </div>
-            <Link className="btn full" style={{ marginTop: 14 }} href="/checkout">
-              Proceed to checkout →
-            </Link>
-            <a
-              className="btn wa-btn full"
-              style={{ marginTop: 10 }}
-              href={whatsappOrderUrl(
-                settings.whatsapp,
-                cart.map((c) => ({
-                  name: c.name,
-                  variant: c.variantName,
-                  size: c.size,
-                  qty: c.qty,
-                  price: c.price,
-                })),
-                total,
-              )}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <Icon.WhatsApp /> Order via WhatsApp
-            </a>
+            {canCheckout ? (
+              <Link className="btn full" style={{ marginTop: 14 }} href="/checkout">
+                Proceed to checkout →
+              </Link>
+            ) : (
+              <button className="btn full" style={{ marginTop: 14 }} type="button" disabled>
+                Add {rupees(minLeft)} more to checkout
+              </button>
+            )}
+            {canCheckout ? (
+              <a
+                className="btn wa-btn full"
+                style={{ marginTop: 10 }}
+                href={whatsappOrderUrl(
+                  settings.whatsapp,
+                  cart.map((c) => ({
+                    name: c.name,
+                    variant: c.variantName,
+                    size: c.size,
+                    qty: c.qty,
+                    price: c.price,
+                  })),
+                  total,
+                )}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Icon.WhatsApp /> Order via WhatsApp
+              </a>
+            ) : (
+              <button className="btn wa-btn full" style={{ marginTop: 10 }} type="button" disabled>
+                <Icon.WhatsApp /> Reach minimum to order
+              </button>
+            )}
             <Link className="btn g full" style={{ marginTop: 10 }} href="/">
               Continue shopping
             </Link>

@@ -12,7 +12,15 @@ type Product = {
   tagline: string;
   description: string;
   stock: number;
-  variants: { id: string; name: string; price: number; stock: number; imageUrl?: string | null }[];
+  variants: {
+    id: string;
+    name: string;
+    price: number;
+    stock: number;
+    imageUrl?: string | null;
+    sizesEnabled?: boolean;
+    sizes?: string[];
+  }[];
   imageUrl: string | null;
   images?: string[];
   visible: boolean;
@@ -49,8 +57,19 @@ export default function EditProductPage() {
               ...variant,
               stock: variant.stock || 0,
               imageUrl: variant.imageUrl || "",
+              sizesEnabled: !!variant.sizesEnabled,
+              sizes: variant.sizes || [],
             }))
-          : [{ name: "Standard", price: 0, stock: product.stock || 0, imageUrl: "" }],
+          : [
+              {
+                name: "Standard",
+                price: 0,
+                stock: product.stock || 0,
+                imageUrl: "",
+                sizesEnabled: false,
+                sizes: [],
+              },
+            ],
         images: product.images?.length ? product.images : product.imageUrl ? [product.imageUrl] : [],
         visible: product.visible,
         customOrderEnabled: !!product.customOrderEnabled,

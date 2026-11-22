@@ -42,6 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <SiteChrome
               categories={categories.filter((c) => !c.parentId).map((c) => ({ slug: c.slug, name: c.name }))}
               whatsapp={settings.whatsapp}
+              minOrderAmount={settings.minOrderAmount}
             >
               {children}
             </SiteChrome>
