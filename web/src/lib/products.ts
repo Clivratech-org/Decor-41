@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { productPhotoList } from "./photos";
+import { parseSizeOptions, type SizeOption } from "./sizes";
 import { normalizeMediaUrl } from "./storage";
 
 export type ProductCard = {
@@ -30,20 +31,10 @@ export type ProductCard = {
     color: string;
     imageUrl: string | null;
     sizesEnabled: boolean;
-    sizes: string[];
+    sizes: SizeOption[];
   }[];
   sizes: string[];
 };
-
-function parseSizeList(raw: string | null | undefined): string[] {
-  try {
-    const parsed = JSON.parse(raw || "[]");
-    if (!Array.isArray(parsed)) return [];
-    return parsed.map((item) => String(item || "").trim()).filter(Boolean);
-  } catch {
-    return [];
-  }
-}
 
 export async function getCategories() {
   const rows = await prisma.category.findMany({ orderBy: { sortOrder: "asc" } });
@@ -64,10 +55,11 @@ export async function getProducts(opts?: { categorySlug?: string; q?: string; in
       ...(opts?.q
         ? {
             OR: [
-              { name: { contains: opts.q } },
-              { tagline: { contains: opts.q } },
-              { description: { contains: opts.q } },
-              { category: { name: { contains: opts.q } } },
+              { name: { contains: opts.q, mode: "insensitive" } },
+              { tagline: { contains: opts.q, mode: "insensitive" } },
+              { description: { contains: opts.q, mode: "insensitive" } },
+              { category: { name: { contains: opts.q, mode: "insensitive" } } },
+              { variants: { some: { name: { contains: opts.q, mode: "insensitive" } } } },
             ],
           }
         : {}),
@@ -138,7 +130,11 @@ function mapProduct(p: {
     sizes?: string;
   }[];
 }): ProductCard {
-  const prices = p.variants.map((v) => v.price);
+  const prices = p.variants.flatMap((v) => {
+    const sizeOptions = parseSizeOptions(v.sizes, v.price);
+    if (v.sizesEnabled && sizeOptions.length) return sizeOptions.map((size) => size.price);
+    return [v.price];
+  });
   const images = productPhotoList(p.images, p.imageUrl);
   const variantStock = p.variants.reduce((sum, v) => sum + v.stock, 0);
   return {
@@ -169,8 +165,8 @@ function mapProduct(p: {
       color: v.color,
       imageUrl: normalizeMediaUrl(v.imageUrl || null),
       sizesEnabled: !!v.sizesEnabled,
-      sizes: parseSizeList(v.sizes),
+      sizes: parseSizeOptions(v.sizes, v.price),
     })),
-    sizes: parseSizeList(p.sizes),
+    sizes: parseSizeOptions(p.sizes).map((size) => size.name),
   };
 }

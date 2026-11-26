@@ -8,8 +8,17 @@ import { CursorGlow } from "@/components/CursorGlow";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { Icon } from "@/components/Icons";
 import { signOut, useSession } from "next-auth/react";
+import { rupees } from "@/lib/money";
 
 type Cat = { slug: string; name: string };
+type SearchHit = {
+  id: number;
+  slug: string;
+  name: string;
+  categoryName: string;
+  fromPrice: number;
+  imageUrl: string | null;
+};
 
 export function SiteChrome({
   children,
@@ -31,6 +40,9 @@ export function SiteChrome({
   const [progress, setProgress] = useState(0);
   const [menu, setMenu] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQ, setSearchQ] = useState("");
+  const [hits, setHits] = useState<SearchHit[]>([]);
+  const [suggestOpen, setSuggestOpen] = useState(false);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
   const isCheckout = pathname.startsWith("/checkout") || pathname.startsWith("/done");
@@ -39,7 +51,31 @@ export function SiteChrome({
   useEffect(() => {
     setMenu(false);
     setSearchOpen(false);
+    setSuggestOpen(false);
+    setHits([]);
+    setSearchQ("");
   }, [pathname]);
+
+  useEffect(() => {
+    if (isAdmin) return;
+    const q = searchQ.trim();
+    if (q.length < 1) {
+      setHits([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        setHits(Array.isArray(data.results) ? data.results : []);
+        setSuggestOpen(true);
+      } catch {
+        setHits([]);
+      }
+    }, 220);
+    return () => clearTimeout(t);
+  }, [searchQ, isAdmin]);
 
   useEffect(() => {
     if (isAdmin) return;
@@ -91,12 +127,51 @@ export function SiteChrome({
 
   function onSearch(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const q = new FormData(e.currentTarget).get("q")?.toString().trim();
+    const q = (new FormData(e.currentTarget).get("q")?.toString() || searchQ).trim();
     if (q) {
       router.push(`/s?q=${encodeURIComponent(q)}`);
       setSearchOpen(false);
+      setSuggestOpen(false);
     }
   }
+
+  function goToHit(slug: string) {
+    setSuggestOpen(false);
+    setSearchOpen(false);
+    setSearchQ("");
+    setHits([]);
+    router.push(`/p/${slug}`);
+  }
+
+  const suggestList =
+    suggestOpen && searchQ.trim() ? (
+      <div className="srch-suggest" role="listbox" aria-label="Search suggestions">
+        {hits.length ? (
+          hits.map((hit) => (
+            <button key={hit.id} type="button" className="srch-hit" onClick={() => goToHit(hit.slug)}>
+              <span className="srch-hit-copy">
+                <b>{hit.name}</b>
+                <small>
+                  {hit.categoryName} · from {rupees(hit.fromPrice)}
+                </small>
+              </span>
+            </button>
+          ))
+        ) : (
+          <p className="srch-empty">No matches for “{searchQ.trim()}”</p>
+        )}
+        <Link
+          className="srch-all"
+          href={`/s?q=${encodeURIComponent(searchQ.trim())}`}
+          onClick={() => {
+            setSuggestOpen(false);
+            setSearchOpen(false);
+          }}
+        >
+          View all results →
+        </Link>
+      </div>
+    ) : null;
 
   function scrollNav(dir: -1 | 1) {
     const el = navRef.current;
@@ -138,10 +213,25 @@ export function SiteChrome({
           {isCheckout && <div className="sf">Secure checkout</div>}
           {!isCheckout && (
             <>
-              <form className="srch srch-desk" onSubmit={onSearch}>
-                <Icon.Search />
-                <input name="q" placeholder="Search décor, cars…" aria-label="Search" />
-              </form>
+              <div className="srch-wrap srch-desk-wrap">
+                <form className="srch srch-desk" onSubmit={onSearch} autoComplete="off">
+                  <Icon.Search />
+                  <input
+                    name="q"
+                    value={searchQ}
+                    onChange={(e) => {
+                      setSearchQ(e.target.value);
+                      setSuggestOpen(true);
+                    }}
+                    onFocus={() => searchQ.trim() && setSuggestOpen(true)}
+                    onBlur={() => setTimeout(() => setSuggestOpen(false), 160)}
+                    placeholder="Search décor, cars…"
+                    aria-label="Search"
+                    aria-autocomplete="list"
+                  />
+                </form>
+                {suggestList}
+              </div>
               <button
                 type="button"
                 className={`tg srch-mob-btn${searchOpen ? " on" : ""}`}
@@ -191,10 +281,24 @@ export function SiteChrome({
         </div>
         {!isCheckout && searchOpen ? (
           <div className="srch-drop w">
-            <form className="srch srch-drop-form" onSubmit={onSearch}>
-              <Icon.Search />
-              <input name="q" placeholder="Search décor, cars…" aria-label="Search" autoFocus />
-            </form>
+            <div className="srch-wrap">
+              <form className="srch srch-drop-form" onSubmit={onSearch} autoComplete="off">
+                <Icon.Search />
+                <input
+                  name="q"
+                  value={searchQ}
+                  onChange={(e) => {
+                    setSearchQ(e.target.value);
+                    setSuggestOpen(true);
+                  }}
+                  onFocus={() => searchQ.trim() && setSuggestOpen(true)}
+                  placeholder="Search décor, cars…"
+                  aria-label="Search"
+                  autoFocus
+                />
+              </form>
+              {suggestList}
+            </div>
           </div>
         ) : null}
       </header>

@@ -19,7 +19,7 @@ type Product = {
     stock: number;
     imageUrl?: string | null;
     sizesEnabled?: boolean;
-    sizes?: string[];
+    sizes?: { name: string; price: number }[];
   }[];
   imageUrl: string | null;
   images?: string[];

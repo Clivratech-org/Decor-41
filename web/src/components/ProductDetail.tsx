@@ -44,12 +44,14 @@ export function ProductDetail({
   const { addItem, showToast } = useCart();
   const router = useRouter();
   const variant = product.variants[v];
-  const price = variant?.price || 0;
-  const stock = variant?.stock ?? 0;
-  const mrp = mrpFrom(product.variants[0]?.price || price);
   const activeSizes =
     variant?.sizesEnabled && variant.sizes?.length ? variant.sizes : [];
-  const selectedSize = activeSizes[s] || "Standard";
+  const selectedSizeOption = activeSizes[s];
+  const selectedSize = selectedSizeOption?.name || "Standard";
+  const price = selectedSizeOption?.price ?? variant?.price ?? 0;
+  const stock = variant?.stock ?? 0;
+  const mrp = mrpFrom(price);
+  const savings = Math.max(0, mrp - price);
 
   const gallery = useMemo(() => {
     const urls: string[] = [];
@@ -137,7 +139,7 @@ export function ProductDetail({
           <div className="gal">
             <div className="main">
               <span className={`tag${stock < 1 ? " bad" : ""}`}>
-                {stock < 1 ? "Out of stock" : `${Math.round((1 - price / mrp) * 100)}% off`}
+                {stock < 1 ? "Out of stock" : savings > 0 ? `${Math.round((1 - price / mrp) * 100)}% off` : "In stock"}
               </span>
               {photo && photoOk ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -221,8 +223,14 @@ export function ProductDetail({
                 </p>
                 <div className="sw">
                   {activeSizes.map((z, j) => (
-                    <button key={z} className={`op ${j === s ? "on" : ""}`} onClick={() => setS(j)} type="button">
-                      {z}
+                    <button
+                      key={`${z.name}-${j}`}
+                      className={`op ${j === s ? "on" : ""}`}
+                      onClick={() => setS(j)}
+                      type="button"
+                    >
+                      {z.name}
+                      <small style={{ marginLeft: 6, opacity: 0.85 }}>{rupees(z.price)}</small>
                     </button>
                   ))}
                 </div>
@@ -232,8 +240,12 @@ export function ProductDetail({
               <span className="pr" style={{ fontSize: 40 }}>
                 {rupees(price)}
               </span>
-              <s className="mut">{rupees(mrp)}</s>
-              <span style={{ color: "var(--at)" }}>Save {rupees(mrp - price)}</span>
+              {savings > 0 ? (
+                <>
+                  <s className="mut">{rupees(mrp)}</s>
+                  <span style={{ color: "var(--at)" }}>Save {rupees(savings)}</span>
+                </>
+              ) : null}
             </div>
             <p className="mut">{stock > 0 ? `${stock} in stock for ${variant.name}` : `${variant.name} is out of stock`}</p>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>

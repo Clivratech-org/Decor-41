@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { calcDiscount, calcShipping, getSettings, meetsMinOrder } from "@/lib/settings";
 import { rupees } from "@/lib/money";
+import { parseSizeOptions } from "@/lib/sizes";
 
 const schema = z.object({
   customerName: z.string().min(2),
@@ -72,7 +73,13 @@ export async function POST(req: Request) {
           variants.find((row) => item.variantId && row.id === item.variantId) ||
           variants.find((row) => row.name === item.variant);
         if (!variant) throw new Error(`${item.name} is no longer available`);
-        if (variant.price !== item.unitPrice) {
+        const sizeOptions = parseSizeOptions(variant.sizes, variant.price);
+        const sizePrice =
+          variant.sizesEnabled && sizeOptions.length
+            ? sizeOptions.find((size) => size.name === item.size)?.price
+            : undefined;
+        const expectedPrice = sizePrice ?? variant.price;
+        if (expectedPrice !== item.unitPrice) {
           throw new Error(`The price for ${item.name} (${variant.name}) changed. Refresh and try again.`);
         }
         if (variant.stock < item.quantity) {

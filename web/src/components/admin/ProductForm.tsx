@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ProductPhotos } from "@/components/admin/ProductPhotos";
 import { ImageField } from "@/components/admin/ImageField";
+import type { SizeOption } from "@/lib/sizes";
 
 export type VariantDraft = {
   id?: string;
@@ -13,7 +14,7 @@ export type VariantDraft = {
   stock: number;
   imageUrl?: string;
   sizesEnabled?: boolean;
-  sizes?: string[];
+  sizes?: SizeOption[];
 };
 
 export type ProductDraft = {
@@ -58,14 +59,18 @@ export function ProductForm({
       return;
     }
     const variants = form.variants.map((variant) => {
+      const basePrice = Math.max(0, Math.round(Number(variant.price) || 0));
       const sizes = (variant.sizes || [])
-        .map((size) => size.trim())
-        .filter(Boolean)
+        .map((size) => ({
+          name: String(size.name || "").trim(),
+          price: Math.max(0, Math.round(Number(size.price) || basePrice)),
+        }))
+        .filter((size) => size.name)
         .slice(0, 12);
       return {
         ...variant,
         name: variant.name.trim(),
-        price: Math.max(0, Math.round(Number(variant.price) || 0)),
+        price: basePrice,
         stock: Math.max(0, Math.round(Number(variant.stock) || 0)),
         imageUrl: variant.imageUrl?.trim() || "",
         sizesEnabled: !!variant.sizesEnabled,
@@ -77,7 +82,7 @@ export function ProductForm({
       return;
     }
     if (variants.some((variant) => variant.sizesEnabled && !variant.sizes.length)) {
-      setError("Turned-on sizes need at least one size name");
+      setError("Turned-on sizes need at least one size with a name and price");
       return;
     }
     setBusy(true);
@@ -198,29 +203,83 @@ export function ProductForm({
                   <input
                     type="checkbox"
                     checked={!!variant.sizesEnabled}
-                    onChange={(e) => updateVariant(index, { sizesEnabled: e.target.checked })}
+                    onChange={(e) =>
+                      updateVariant(index, {
+                        sizesEnabled: e.target.checked,
+                        sizes:
+                          e.target.checked && !(variant.sizes || []).length
+                            ? [{ name: "Standard", price: Number(variant.price) || 0 }]
+                            : variant.sizes || [],
+                      })
+                    }
                   />
                   Enable sizes for this variant
                 </label>
                 {variant.sizesEnabled ? (
                   <>
-                    <label className="variant-field name" style={{ display: "block", marginTop: 8 }}>
-                      <span>Sizes (comma separated)</span>
-                      <input
-                        value={(variant.sizes || []).join(", ")}
-                        placeholder="A3, A4, A5"
-                        aria-label={`Variant ${index + 1} sizes`}
-                        onChange={(e) =>
-                          updateVariant(index, {
-                            sizes: e.target.value
-                              .split(",")
-                              .map((part) => part.trim())
-                              .filter(Boolean),
-                          })
-                        }
-                      />
-                    </label>
-                    <p className="hint">Customers only see these sizes when this option is selected.</p>
+                    <p className="hint">Each size can have its own price for this variant.</p>
+                    <div className="size-price-list">
+                      {(variant.sizes || []).map((size, sizeIndex) => (
+                        <div className="size-price-row" key={sizeIndex}>
+                          <label className="variant-field name">
+                            <span>Size</span>
+                            <input
+                              value={size.name}
+                              placeholder="A3, A4…"
+                              aria-label={`Variant ${index + 1} size ${sizeIndex + 1} name`}
+                              onChange={(e) => {
+                                const sizes = [...(variant.sizes || [])];
+                                sizes[sizeIndex] = { ...sizes[sizeIndex], name: e.target.value };
+                                updateVariant(index, { sizes });
+                              }}
+                            />
+                          </label>
+                          <label className="variant-field">
+                            <span>Price (₹)</span>
+                            <input
+                              type="number"
+                              min={0}
+                              value={size.price}
+                              aria-label={`Variant ${index + 1} size ${sizeIndex + 1} price`}
+                              onChange={(e) => {
+                                const sizes = [...(variant.sizes || [])];
+                                sizes[sizeIndex] = {
+                                  ...sizes[sizeIndex],
+                                  price: Number(e.target.value),
+                                };
+                                updateVariant(index, { sizes });
+                              }}
+                            />
+                          </label>
+                          <button
+                            className="btn g"
+                            type="button"
+                            disabled={(variant.sizes || []).length <= 1}
+                            onClick={() =>
+                              updateVariant(index, {
+                                sizes: (variant.sizes || []).filter((_, i) => i !== sizeIndex),
+                              })
+                            }
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      className="btn g"
+                      type="button"
+                      onClick={() =>
+                        updateVariant(index, {
+                          sizes: [
+                            ...(variant.sizes || []),
+                            { name: "", price: Number(variant.price) || 0 },
+                          ],
+                        })
+                      }
+                    >
+                      Add size
+                    </button>
                   </>
                 ) : null}
               </div>

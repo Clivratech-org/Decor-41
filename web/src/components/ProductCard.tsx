@@ -66,8 +66,8 @@ export function ProductCard({ product }: { product: P }) {
       variantName: v.name,
       color: v.color,
       size:
-        v.sizesEnabled && v.sizes?.length ? v.sizes[0] : product.sizes[0] || "Standard",
-      price: v.price,
+        v.sizesEnabled && v.sizes?.length ? v.sizes[0].name : product.sizes[0] || "Standard",
+      price: v.sizesEnabled && v.sizes?.length ? v.sizes[0].price : v.price,
       qty: 1,
     });
     showToast("Added to cart ✓");

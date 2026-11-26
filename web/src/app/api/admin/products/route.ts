@@ -2,6 +2,7 @@ import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
 import { cleanProductPhotos, productPhotoList } from "@/lib/photos";
+import { cleanSizeOptions, parseSizeOptions, type SizeOption } from "@/lib/sizes";
 import { NextResponse } from "next/server";
 
 const PLACEHOLDER_FEATURES = JSON.stringify([["Quality build", "Crafted for everyday use."]]);
@@ -22,13 +23,8 @@ type VariantInput = {
   stock: number;
   imageUrl?: string | null;
   sizesEnabled?: boolean;
-  sizes?: string[];
+  sizes?: SizeOption[];
 };
-
-function cleanSizes(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((item) => String(item || "").trim()).filter(Boolean).slice(0, 12);
-}
 
 function normalizeVariants(raw: unknown, fallbackPrice: number, fallbackStock = 0): VariantInput[] {
   if (Array.isArray(raw)) {
@@ -43,14 +39,15 @@ function normalizeVariants(raw: unknown, fallbackPrice: number, fallbackStock = 
           sizesEnabled?: boolean;
           sizes?: unknown;
         };
+        const price = Math.max(0, Math.round(Number(row.price) || 0));
         return {
           id: row.id,
           name: String(row.name || "").trim(),
-          price: Math.max(0, Math.round(Number(row.price) || 0)),
+          price,
           stock: Math.max(0, Math.round(Number(row.stock) || 0)),
           imageUrl: row.imageUrl?.trim() || null,
           sizesEnabled: !!row.sizesEnabled,
-          sizes: cleanSizes(row.sizes),
+          sizes: cleanSizeOptions(row.sizes, price),
         };
       })
       .filter((row) => row.name);
@@ -65,7 +62,7 @@ function normalizeVariants(raw: unknown, fallbackPrice: number, fallbackStock = 
         stock: Math.max(0, Math.round(fallbackStock)),
         imageUrl: null,
         sizesEnabled: false,
-        sizes: [],
+        sizes: [] as SizeOption[],
       }));
     }
   }
@@ -76,7 +73,7 @@ function normalizeVariants(raw: unknown, fallbackPrice: number, fallbackStock = 
       stock: Math.max(0, Math.round(fallbackStock)),
       imageUrl: null,
       sizesEnabled: false,
-      sizes: [],
+      sizes: [] as SizeOption[],
     },
   ];
 }
@@ -126,15 +123,7 @@ function mapProduct(p: {
       stock: v.stock,
       imageUrl: v.imageUrl || null,
       sizesEnabled: !!v.sizesEnabled,
-      sizes: cleanSizes(
-        (() => {
-          try {
-            return JSON.parse(v.sizes || "[]");
-          } catch {
-            return [];
-          }
-        })(),
-      ),
+      sizes: parseSizeOptions(v.sizes, v.price),
     })),
     imageUrl: images[0] || null,
     images,
@@ -263,15 +252,7 @@ export async function PUT(req: Request) {
         stock: v.stock,
         imageUrl: v.imageUrl,
         sizesEnabled: v.sizesEnabled,
-        sizes: cleanSizes(
-          (() => {
-            try {
-              return JSON.parse(v.sizes || "[]");
-            } catch {
-              return [];
-            }
-          })(),
-        ),
+        sizes: parseSizeOptions(v.sizes, v.price),
       })),
     (existing.variants[0]?.price ?? Number(body.price)) || 0,
     existing.stock,
